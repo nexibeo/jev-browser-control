@@ -16,7 +16,7 @@ These tools drive the user's own Chrome through the Jev Browser Control extensio
 
 ## Let Jev do the clicking
 
-Clicking through pages doesn't need you. In a measured comparison on the same tasks, Jev picked each step 29 to 165 times cheaper and 2 to 3 times faster than Claude or GPT models doing it themselves. So plan the work, hand each multi-step sequence to `jev_task`, and spend your own steps on deciding what to do and checking the result.
+Clicking through pages doesn't need you. In a measured comparison on the same tasks, Jev picked each step 27 to 198 times cheaper and more than twice as fast than Claude or GPT models doing it themselves. So plan the work, hand each multi-step sequence to `jev_task`, and spend your own steps on deciding what to do and checking the result.
 
 ## Pick the right tool
 

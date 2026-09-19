@@ -4,7 +4,7 @@ Let Claude control your own Chrome. A Chrome extension plus a small MCP server: 
 
 Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com](https://nexibeo.com) · [completeaitraining.com](https://completeaitraining.com)), built together with Claude.
 
-**Measured 29 to 165 times cheaper, and 2 to 3 times faster, than letting Claude's or Codex's own model do the clicking** (same tasks, same loop; [results](#jev-vs-claude-and-codex-models)).
+**Measured 27 to 198 times cheaper, and more than twice as fast, than letting Claude's or Codex's own model do the clicking** (same tasks, same loop; [results](#jev-vs-claude-and-codex-models)).
 
 **Website:** [jevbrowsercontrol.com](https://jevbrowsercontrol.com) · **Docs:** [jevbrowsercontrol.com/docs](https://jevbrowsercontrol.com/docs) · **License:** MIT
 
@@ -72,18 +72,18 @@ Recorded traces are in [`results/`](results).
 
 ### Jev vs. Claude and Codex models
 
-[`scripts/benchmark.mjs`](scripts/benchmark.mjs) runs three live tasks (search Wikipedia and open an article; fill 7 fields of httpbin's order form without submitting; open the top Hacker News story's comments) through the same loop and page snapshot, changing only who answers each step's questions. Every model passed all three; success is checked in code on the final page.
+[`scripts/benchmark.mjs`](scripts/benchmark.mjs) runs three live tasks (search Wikipedia and open an article; fill 7 fields of httpbin's order form without submitting; open the top Hacker News story's comments) through the same loop and page snapshot, changing only who answers each step's questions. With `--session`, the models run the way Claude Code and Codex run them: tool definitions in the system prompt, the whole conversation resent at every step, reasoning at medium effort, prompt caching on. Every model passed all three tasks; success is checked in code on the final page.
 
 | Who picks each step | Total cost, 3 tasks | Time | Cost vs. Jev |
 | --- | --- | --- | --- |
-| Jev (`~typesafe/jev-latest`), own OpenRouter key | $0.0057 | 17.8 s | 1× |
-| Jev on jevbrowsercontrol.com credits (5×) | $0.028 | 17.8 s | 5× |
-| GPT-5.3 Codex | $0.167 | 45.4 s | 29× |
-| Claude Sonnet 5 | $0.247 | 44.4 s | 43× |
-| Claude Opus 5 | $0.538 | 50.1 s | 95× |
-| GPT-6 Astra | $0.941 | 38.8 s | 165× |
+| Jev Browser Control, open source with your OpenRouter key | $0.0057 | 17.8 s | 1× |
+| Jev Browser Control as a service (jevbrowsercontrol.com credits) | $0.028 | 17.8 s | 5× |
+| GPT-5.3 Codex | $0.153 | 38.9 s | 27× |
+| Claude Sonnet 5 | $0.249 | 43.3 s | 44× |
+| Claude Opus 5 | $0.795 | 45.4 s | 140× |
+| GPT-6 Astra | $1.129 | 38.3 s | 198× |
 
-September 19, 2026, OpenRouter prices, reasoning off or low. The model numbers are a floor: a real Claude Code or Codex session also resends its instructions, tools and conversation on every step. On Hacker News Jev reached the right page each time but its own goal check was unsure, so it ended as `stuck` or `done_unconfirmed` rather than `done`. Raw data: [`results/benchmark-2026-09-19.json`](results/benchmark-2026-09-19.json).
+September 19, 2026, OpenRouter prices. Without `--session` (one bare call per step, reasoning off or low) the models cost about the same or less: $0.167, $0.247, $0.538 and $0.941. Prompt caching keeps the resent conversation cheap on short tasks like these; a long real session, which carries all its earlier work into every step, costs more. On Hacker News Jev reached the right page each time but its own goal check was unsure, so it ended as `stuck` or `done_unconfirmed` rather than `done`. Raw data: [`results/benchmark-session-2026-09-19.json`](results/benchmark-session-2026-09-19.json) and [`results/benchmark-2026-09-19.json`](results/benchmark-2026-09-19.json).
 
 ## Repository
 

@@ -11,7 +11,7 @@ How to work:
 
 1. Start with `browser_status`. If the extension isn't connected, stop and report that the user should open Chrome, click the orange Jev toolbar icon, and turn on "Let Claude control this browser". If no API key is set, you can still use the browser_* tools, but not jev_*.
 2. Open new pages with `browser_navigate` and `newTab: true`, so the user's own tabs stay as they are.
-3. For multi-step work with a clear goal (search, filters, forms), use `jev_task`: it was measured 29 to 165 times cheaper and 2 to 3 times faster than a Claude or GPT model making each click. Put every requirement in `goal` and every value to type in `details`. Keep one site and one outcome per task.
+3. For multi-step work with a clear goal (search, filters, forms), use `jev_task`: it was measured 27 to 198 times cheaper and more than twice as fast than a Claude or GPT model making each click. Put every requirement in `goal` and every value to type in `details`. Keep one site and one outcome per task.
 4. For single precise actions, use `browser_snapshot`, then `browser_click` / `browser_type` / `browser_select` with the `[n]` ref. Take a new snapshot after the page changes. Use `browser_read` for long text and `browser_screenshot` for anything visual.
 5. Verify before reporting success: read the final page text, or ask `jev_check` a yes/no question about it. Jev can be confidently wrong between look-alike names.
 
