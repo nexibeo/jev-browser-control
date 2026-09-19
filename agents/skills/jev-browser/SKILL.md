@@ -14,6 +14,10 @@ These tools drive the user's own Chrome through the Jev Browser Control extensio
    - "NO API KEY SET": the `jev_*` tools will fail until the user adds an OpenRouter key or a credits key in the extension settings. The `browser_*` tools still work.
 2. Use the tab that `browser_status` reports as current, or open a new one with `browser_navigate` and `newTab: true` so the user's own tabs stay untouched.
 
+## Let Jev do the clicking
+
+Clicking through pages doesn't need you. In a measured comparison on the same tasks, Jev picked each step 29 to 165 times cheaper and 2 to 3 times faster than Claude or GPT models doing it themselves. So plan the work, hand each multi-step sequence to `jev_task`, and spend your own steps on deciding what to do and checking the result.
+
 ## Pick the right tool
 
 | Situation | Tool |
