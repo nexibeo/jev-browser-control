@@ -3,7 +3,7 @@
 // Every other one (a second Claude session) connects to the owner as a peer and
 // forwards its requests, so several sessions can share one browser. If the owner
 // exits, a peer takes over the port.
-import { listen } from './ws.mjs';
+import { listen, connect } from './ws.mjs';
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -168,35 +168,32 @@ export class Hub {
 
   // ---------- peer ----------
 
-  becomePeer() {
-    return new Promise((resolve, reject) => {
-      const ws = new WebSocket(`ws://127.0.0.1:${this.port}/peer?token=${this.token}`);
-      let opened = false;
-      ws.onopen = () => {
-        opened = true;
-        this.mode = 'peer';
-        this.peerSocket = ws;
-        this.log(`joined the bridge on 127.0.0.1:${this.port} as a peer`);
-        resolve();
-      };
-      ws.onmessage = (ev) => {
-        let msg;
-        try { msg = JSON.parse(ev.data); } catch { return; }
-        const p = this.pending.get(msg.id);
-        if (!p) return;
-        if (msg.type === 'event') return p.onEvent?.(msg.event);
-        if (msg.type !== 'response') return;
-        this.pending.delete(msg.id);
-        clearTimeout(p.timer);
-        if (msg.error) { const e = new Error(msg.error.message); e.code = msg.error.code; p.reject(e); } else p.resolve(msg.result);
-      };
-      ws.onclose = () => {
-        if (!opened) return reject(new Error(`Port ${this.port} is in use by another program. Set JBC_PORT to a free port (and the same port in the extension settings).`));
-        this.peerSocket = null;
-        for (const [id, p] of this.pending) { clearTimeout(p.timer); p.reject(new Error('Lost the bridge while waiting; retry.')); this.pending.delete(id); }
-        if (!this.closed) setTimeout(() => this.recover(), 200 + Math.random() * 500);
-      };
-      ws.onerror = () => {};
+  async becomePeer() {
+    let conn;
+    try {
+      conn = await connect(`ws://127.0.0.1:${this.port}/peer?token=${this.token}`);
+    } catch {
+      throw new Error(`Port ${this.port} is in use by another program. Set JBC_PORT to a free port (and the same port in the extension settings).`);
+    }
+    this.mode = 'peer';
+    this.peerSocket = conn;
+    this.log(`joined the bridge on 127.0.0.1:${this.port} as a peer`);
+    conn.on('message', (data) => {
+      let msg;
+      try { msg = JSON.parse(data); } catch { return; }
+      const p = this.pending.get(msg.id);
+      if (!p) return;
+      if (msg.type === 'event') return p.onEvent?.(msg.event);
+      if (msg.type !== 'response') return;
+      this.pending.delete(msg.id);
+      clearTimeout(p.timer);
+      if (msg.error) { const e = new Error(msg.error.message); e.code = msg.error.code; p.reject(e); } else p.resolve(msg.result);
+    });
+    conn.on('close', () => {
+      if (this.peerSocket !== conn) return;
+      this.peerSocket = null;
+      for (const [id, p] of this.pending) { clearTimeout(p.timer); p.reject(new Error('Lost the bridge while waiting; retry.')); this.pending.delete(id); }
+      if (!this.closed) setTimeout(() => this.recover(), 200 + Math.random() * 500);
     });
   }
 
@@ -228,7 +225,7 @@ export class Hub {
       this.pending.set(id, { resolve, reject, onEvent, timer });
       const msg = { type: 'request', id, method, params, timeoutMs };
       if (this.mode === 'owner') this.extension.send(msg);
-      else this.peerSocket.send(JSON.stringify(msg));
+      else this.peerSocket.send(msg);
     });
   }
 

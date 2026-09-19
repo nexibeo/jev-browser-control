@@ -18,7 +18,7 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
 
 1. **Install the extension.** Clone this repo (or download the [zip](https://jevbrowsercontrol.com/downloads/jev-browser-control-extension.zip)), open `chrome://extensions`, switch on Developer mode, click **Load unpacked** and pick the `extension/` folder.
 2. **Choose a provider** in the settings page that opens: paste an [OpenRouter key](https://openrouter.ai/settings/keys) or a `jbc_` credits key, and press **Test connection**.
-3. **Connect Claude.** Needs Node.js 22+; no other dependencies.
+3. **Connect Claude.** Needs Node.js 18+; no other dependencies.
 
    ```bash
    claude mcp add jev-browser -- node /path/to/jev-browser-control/mcp/server.mjs
@@ -33,6 +33,8 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
    Claude Desktop: add `{"mcpServers": {"jev-browser": {"command": "node", "args": ["/path/to/mcp/server.mjs"]}}}` to its config.
 
 Then ask Claude: *“Use the browser to search Wikipedia for Ristretto and tell me where the name comes from.”*
+
+**Claude Code and OpenAI Codex agent files.** [`agents/`](agents) has a skill (works in both) and a Claude Code subagent. `node scripts/install-agents.mjs` registers the MCP server and installs them for whichever of the two you have.
 
 ## How a step works
 
@@ -71,7 +73,8 @@ Recorded traces are in [`results/`](results).
 | `extension/` | Manifest V3 extension: `background.js` (router), `lib/agent.js` (the loop), `lib/policy.js` (questions), `lib/page.js` (in-page snapshot and input), `lib/driver.js` (Chrome and CDP), `lib/provider.js` (OpenRouter / credits / custom), side panel and settings |
 | `mcp/` | Zero-dependency MCP server: stdio JSON-RPC, a small RFC 6455 WebSocket bridge on 127.0.0.1, and peer mode so several Claude sessions share one browser |
 | `test/` | Unit tests (policy, agent loop, bridge, MCP over stdio) and `e2e/run.mjs` (real Chrome + extension + MCP + live Jev) |
-| `scripts/` | `build-zip.mjs` (release zip and npm tarball), `record-run.mjs` (record a task with every decision), `make-icons.mjs` |
+| `agents/` | A skill for Claude Code and Codex, and a Claude Code subagent |
+| `scripts/` | `install-agents.mjs` (set up Claude Code and Codex), `build-zip.mjs` (release zip and npm tarball), `record-run.mjs` (record a task with every decision), `make-icons.mjs` |
 
 ```bash
 npm install                 # playwright-core, only for e2e and icons

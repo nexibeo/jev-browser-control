@@ -1,7 +1,7 @@
 // A minimal WebSocket server (RFC 6455) on node:http, so the MCP server has no dependencies.
 // Text and binary frames, fragmentation, ping/pong and close. Server frames are never masked.
-import { createServer } from 'node:http';
-import { createHash } from 'node:crypto';
+import { createServer, request } from 'node:http';
+import { createHash, randomBytes } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 
 const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
@@ -35,10 +35,35 @@ export function listen({ port, host = '127.0.0.1', verify, onConnection, onHttp 
   });
 }
 
+// A client connection (used by peer MCP servers), so Node 18+ works without a global WebSocket.
+export function connect(url, { timeoutMs = 3000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url);
+    const key = randomBytes(16).toString('base64');
+    const req = request({
+      host: u.hostname, port: u.port, path: u.pathname + u.search, timeout: timeoutMs,
+      headers: { Connection: 'Upgrade', Upgrade: 'websocket', 'Sec-WebSocket-Key': key, 'Sec-WebSocket-Version': '13' },
+    });
+    req.on('upgrade', (res, socket, head) => {
+      const expected = createHash('sha1').update(key + GUID).digest('base64');
+      if (res.headers['sec-websocket-accept'] !== expected) { socket.destroy(); return reject(new Error('Bad WebSocket handshake')); }
+      socket.setNoDelay(true);
+      const conn = new WsConnection(socket, { client: true });
+      if (head?.length) socket.unshift(head);
+      resolve(conn);
+    });
+    req.on('response', (res) => { res.resume(); reject(new Error(`WebSocket refused: HTTP ${res.statusCode}`)); });
+    req.on('timeout', () => req.destroy(new Error('WebSocket connect timed out')));
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 export class WsConnection extends EventEmitter {
-  constructor(socket) {
+  constructor(socket, { client = false } = {}) {
     super();
     this.socket = socket;
+    this.client = client;
     this.open = true;
     let buf = Buffer.alloc(0);
     let fragments = [];
@@ -98,11 +123,16 @@ export class WsConnection extends EventEmitter {
   frame(opcode, payload) {
     if (!this.open) return;
     const len = payload.length;
+    const mask = this.client ? 0x80 : 0; // clients must mask, servers must not
     let head;
-    if (len < 126) head = Buffer.from([0x80 | opcode, len]);
-    else if (len < 65536) { head = Buffer.alloc(4); head[0] = 0x80 | opcode; head[1] = 126; head.writeUInt16BE(len, 2); }
-    else { head = Buffer.alloc(10); head[0] = 0x80 | opcode; head[1] = 127; head.writeBigUInt64BE(BigInt(len), 2); }
-    this.socket.write(Buffer.concat([head, payload]));
+    if (len < 126) head = Buffer.from([0x80 | opcode, mask | len]);
+    else if (len < 65536) { head = Buffer.alloc(4); head[0] = 0x80 | opcode; head[1] = mask | 126; head.writeUInt16BE(len, 2); }
+    else { head = Buffer.alloc(10); head[0] = 0x80 | opcode; head[1] = mask | 127; head.writeBigUInt64BE(BigInt(len), 2); }
+    if (!this.client) return void this.socket.write(Buffer.concat([head, payload]));
+    const key = randomBytes(4);
+    const body = Buffer.from(payload);
+    for (let i = 0; i < body.length; i++) body[i] ^= key[i & 3];
+    this.socket.write(Buffer.concat([head, key, body]));
   }
 
   send(text) {
