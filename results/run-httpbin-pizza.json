@@ -1,0 +1,496 @@
+{
+  "recorded": "2026-09-19T15:13:08.813Z",
+  "goal": "Order a large pizza with bacon and onion, delivery at 19:30, for customer Ada Lovelace, phone 555-0100. Fill everything in but do not submit.",
+  "url": "https://httpbin.org/forms/post",
+  "decisions": [
+    {
+      "type": "decision",
+      "step": 1,
+      "operation": "TYPE_TEXT",
+      "target": "Customer name:",
+      "confidence": 0.87,
+      "target_confidence": 0.9,
+      "goal_done": 0.02,
+      "ms": 488,
+      "cost": 0.000122136,
+      "alternatives": [
+        {
+          "key": "1",
+          "label": "Customer name:",
+          "p": 0.91
+        },
+        {
+          "key": "11",
+          "label": "Preferred delivery time:",
+          "p": 0.07
+        },
+        {
+          "key": "3",
+          "label": "E-mail address:",
+          "p": 0.01
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 2,
+      "operation": "TYPE_TEXT",
+      "target": "Telephone:",
+      "confidence": 0.72,
+      "target_confidence": 0.89,
+      "goal_done": 0.02,
+      "ms": 437,
+      "cost": 0.00027674000000000004,
+      "alternatives": [
+        {
+          "key": "2",
+          "label": "Telephone:",
+          "p": 0.92
+        },
+        {
+          "key": "11",
+          "label": "Preferred delivery time:",
+          "p": 0.08
+        },
+        {
+          "key": "1",
+          "label": "Customer name:",
+          "p": 0
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 3,
+      "operation": "CLICK",
+      "target": "Large",
+      "confidence": 0.69,
+      "target_confidence": 0.81,
+      "goal_done": 0.03,
+      "ms": 321,
+      "cost": 0.00043972600000000004,
+      "alternatives": [
+        {
+          "key": "6",
+          "label": "Large",
+          "p": 0.83
+        },
+        {
+          "key": "3",
+          "label": "Open E-mail address:",
+          "p": 0.15
+        },
+        {
+          "key": "7",
+          "label": "Bacon",
+          "p": 0.01
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 4,
+      "operation": "TYPE_TEXT",
+      "target": "Preferred delivery time:",
+      "confidence": 0.38,
+      "target_confidence": 0.93,
+      "goal_done": 0.03,
+      "ms": 384,
+      "cost": 0.000568288,
+      "alternatives": [
+        {
+          "key": "11",
+          "label": "Preferred delivery time:",
+          "p": 0.94
+        },
+        {
+          "key": "3",
+          "label": "E-mail address:",
+          "p": 0.06
+        },
+        {
+          "key": "1",
+          "label": "Customer name:",
+          "p": 0
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 5,
+      "operation": "CLICK",
+      "target": "Bacon",
+      "confidence": 0.93,
+      "target_confidence": 0.88,
+      "goal_done": 0.04,
+      "ms": 375,
+      "cost": 0.000733442,
+      "alternatives": [
+        {
+          "key": "7",
+          "label": "Bacon",
+          "p": 0.9
+        },
+        {
+          "key": "3",
+          "label": "Open E-mail address:",
+          "p": 0.08
+        },
+        {
+          "key": "9",
+          "label": "Onion",
+          "p": 0.02
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 6,
+      "operation": "CLICK",
+      "target": "Onion",
+      "confidence": 0.91,
+      "target_confidence": 0.96,
+      "goal_done": 0.04,
+      "ms": 373,
+      "cost": 0.0008657,
+      "alternatives": [
+        {
+          "key": "9",
+          "label": "Onion",
+          "p": 0.97
+        },
+        {
+          "key": "3",
+          "label": "Open E-mail address:",
+          "p": 0.03
+        },
+        {
+          "key": "1",
+          "label": "Open Customer name:",
+          "p": 0
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 7,
+      "operation": "TYPE_TEXT",
+      "target": "E-mail address:",
+      "confidence": 0.48,
+      "target_confidence": 0.7,
+      "goal_done": 0.42,
+      "ms": 385,
+      "cost": 0.00099905,
+      "alternatives": [
+        {
+          "key": "3",
+          "label": "E-mail address:",
+          "p": 0.77
+        },
+        {
+          "key": "12",
+          "label": "Delivery instructions:",
+          "p": 0.23
+        },
+        {
+          "key": "1",
+          "label": "Customer name:",
+          "p": 0
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 8,
+      "operation": "TYPE_TEXT",
+      "target": "E-mail address:",
+      "confidence": 0.78,
+      "target_confidence": 0.84,
+      "goal_done": 0.21,
+      "ms": 488,
+      "cost": 0.0011618960000000002,
+      "alternatives": [
+        {
+          "key": "3",
+          "label": "E-mail address:",
+          "p": 0.88
+        },
+        {
+          "key": "12",
+          "label": "Delivery instructions:",
+          "p": 0.12
+        },
+        {
+          "key": "1",
+          "label": "Customer name:",
+          "p": 0
+        }
+      ],
+      "taskId": "9d96deef-74d7-4b0d-b866-dea41bbe9d24",
+      "source": "claude"
+    }
+  ],
+  "result": {
+    "status": "needs_input",
+    "note": "The field \"E-mail address:\" needs a value the goal doesn't give. Pass it in details.",
+    "goal": "Order a large pizza with bacon and onion, delivery at 19:30, for customer Ada Lovelace, phone 555-0100. Fill everything in but do not submit.",
+    "steps": [
+      {
+        "step": 1,
+        "operation": "TYPE_TEXT",
+        "action": "Customer name:",
+        "kind": "fill",
+        "text": "Ada Lovelace",
+        "confidence": 0.87,
+        "target_confidence": 0.9,
+        "goal_done": 0.02,
+        "alternatives": [
+          {
+            "key": "1",
+            "label": "Customer name:",
+            "p": 0.91
+          },
+          {
+            "key": "11",
+            "label": "Preferred delivery time:",
+            "p": 0.07
+          },
+          {
+            "key": "3",
+            "label": "E-mail address:",
+            "p": 0.01
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 488,
+        "act_ms": 88
+      },
+      {
+        "step": 2,
+        "operation": "TYPE_TEXT",
+        "action": "Telephone:",
+        "kind": "fill",
+        "text": "555-0100",
+        "confidence": 0.72,
+        "target_confidence": 0.89,
+        "goal_done": 0.02,
+        "alternatives": [
+          {
+            "key": "2",
+            "label": "Telephone:",
+            "p": 0.92
+          },
+          {
+            "key": "11",
+            "label": "Preferred delivery time:",
+            "p": 0.08
+          },
+          {
+            "key": "1",
+            "label": "Customer name:",
+            "p": 0
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 437,
+        "act_ms": 39
+      },
+      {
+        "step": 3,
+        "operation": "CLICK",
+        "action": "Large",
+        "kind": "click",
+        "confidence": 0.69,
+        "target_confidence": 0.81,
+        "goal_done": 0.03,
+        "alternatives": [
+          {
+            "key": "6",
+            "label": "Large",
+            "p": 0.83
+          },
+          {
+            "key": "3",
+            "label": "Open E-mail address:",
+            "p": 0.15
+          },
+          {
+            "key": "7",
+            "label": "Bacon",
+            "p": 0.01
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 321,
+        "act_ms": 177
+      },
+      {
+        "step": 4,
+        "operation": "TYPE_TEXT",
+        "action": "Preferred delivery time:",
+        "kind": "fill",
+        "text": "19:30",
+        "confidence": 0.38,
+        "target_confidence": 0.93,
+        "goal_done": 0.03,
+        "alternatives": [
+          {
+            "key": "11",
+            "label": "Preferred delivery time:",
+            "p": 0.94
+          },
+          {
+            "key": "3",
+            "label": "E-mail address:",
+            "p": 0.06
+          },
+          {
+            "key": "1",
+            "label": "Customer name:",
+            "p": 0
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 384,
+        "act_ms": 46
+      },
+      {
+        "step": 5,
+        "operation": "CLICK",
+        "action": "Bacon",
+        "kind": "click",
+        "confidence": 0.93,
+        "target_confidence": 0.88,
+        "goal_done": 0.04,
+        "alternatives": [
+          {
+            "key": "7",
+            "label": "Bacon",
+            "p": 0.9
+          },
+          {
+            "key": "3",
+            "label": "Open E-mail address:",
+            "p": 0.08
+          },
+          {
+            "key": "9",
+            "label": "Onion",
+            "p": 0.02
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 375,
+        "act_ms": 173
+      },
+      {
+        "step": 6,
+        "operation": "CLICK",
+        "action": "Onion",
+        "kind": "click",
+        "confidence": 0.91,
+        "target_confidence": 0.96,
+        "goal_done": 0.04,
+        "alternatives": [
+          {
+            "key": "9",
+            "label": "Onion",
+            "p": 0.97
+          },
+          {
+            "key": "3",
+            "label": "Open E-mail address:",
+            "p": 0.03
+          },
+          {
+            "key": "1",
+            "label": "Open Customer name:",
+            "p": 0
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 373,
+        "act_ms": 177
+      },
+      {
+        "step": 7,
+        "operation": "TYPE_TEXT",
+        "action": "E-mail address:",
+        "kind": "fill",
+        "confidence": 0.48,
+        "goal_done": 0.42,
+        "outcome": "skipped: the goal gives no value for this field; leave it unless it is required",
+        "page_changed": false,
+        "url": "https://httpbin.org/forms/post",
+        "decide_ms": 385,
+        "act_ms": 0
+      }
+    ],
+    "pending": {
+      "ref": 3,
+      "label": "E-mail address:",
+      "url": "https://httpbin.org/forms/post"
+    },
+    "decisions": 8,
+    "text_calls": [
+      {
+        "field": "Customer name:",
+        "value": "Ada Lovelace",
+        "model": "inception/mercury-2.5",
+        "ms": 621
+      },
+      {
+        "field": "Telephone:",
+        "value": "555-0100",
+        "model": "inception/mercury-2.5",
+        "ms": 569
+      },
+      {
+        "field": "Preferred delivery time:",
+        "value": "19:30",
+        "model": "inception/mercury-2.5",
+        "ms": 537
+      },
+      {
+        "field": "E-mail address:",
+        "value": null,
+        "model": "inception/mercury-2.5",
+        "ms": 640
+      }
+    ],
+    "cost_usd": 0.001162,
+    "elapsed_ms": 7254,
+    "model": "typesafe/jev-1.13-20260917",
+    "final": {
+      "url": "https://httpbin.org/forms/post",
+      "title": "",
+      "text": "Customer name:\nTelephone:\nE-mail address:\nPizza Size\nSmall\nMedium\nLarge\nPizza Toppings\nBacon\nExtra Cheese\nOnion\nMushroom\nPreferred delivery time:\nDelivery instructions:\nSubmit order"
+    }
+  }
+}

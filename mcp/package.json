@@ -1,0 +1,36 @@
+{
+  "name": "jev-browser-control-mcp",
+  "version": "0.1.0",
+  "description": "MCP server that lets Claude control your Chrome through the Jev Browser Control extension. Jev, a fast decision model, handles multi-step browser work in about half a second per step.",
+  "type": "module",
+  "bin": {
+    "jev-browser-control-mcp": "server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "keywords": [
+    "mcp",
+    "claude",
+    "browser",
+    "chrome",
+    "jev",
+    "typesafe",
+    "openrouter",
+    "browser-automation"
+  ],
+  "homepage": "https://jevbrowsercontrol.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexibeo/jev-browser-control.git",
+    "directory": "mcp"
+  },
+  "license": "MIT",
+  "author": "Jeroen Erne (https://www.linkedin.com/in/jeroenerne/)"
+}

@@ -1,0 +1,34 @@
+body { display: flex; flex-direction: column; min-height: 100vh; }
+.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 1; }
+.pills { flex-wrap: wrap; justify-content: flex-end; }
+main { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.actions { margin-top: 10px; }
+details { margin-top: 8px; }
+summary { cursor: pointer; color: var(--muted); font-size: 13px; }
+details textarea { margin-top: 6px; min-height: 48px; }
+
+.log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.log li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: start; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font-size: 13px; }
+.log .n { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; padding-top: 1px; }
+.log .what { min-width: 0; overflow-wrap: anywhere; }
+.log .op { font-weight: 700; font-size: 11px; letter-spacing: 0.04em; color: var(--accent-text); margin-right: 4px; }
+.log .meta { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.log .typed { display: block; color: var(--muted); font-size: 12px; }
+.log li.failed { border-color: var(--bad); }
+.log li.stale { opacity: 0.6; }
+
+.result h3 { font-size: 15px; margin-bottom: 4px; }
+.result.ok { border-color: var(--good); }
+.result.warn { border-color: var(--accent); }
+.result.bad { border-color: var(--bad); }
+.result p { margin: 4px 0 0; }
+.result .stats { color: var(--muted); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+.confirm { border-color: var(--accent); }
+.confirm h3 { font-size: 15px; }
+.confirm p { margin: 6px 0 10px; overflow-wrap: anywhere; }
+
+.empty { color: var(--muted); font-size: 13px; }
+.empty p { margin: 0 0 8px; }
+
+.bottom { display: flex; gap: 6px; align-items: center; padding: 10px 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }

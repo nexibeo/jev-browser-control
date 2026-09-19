@@ -1,0 +1,24 @@
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+.head { display: flex; align-items: center; justify-content: space-between; padding-top: 20px; padding-bottom: 12px; }
+.head .brand { font-size: 18px; }
+.head .brand img { width: 28px; height: 28px; }
+main.wrap { display: flex; flex-direction: column; gap: 14px; padding-bottom: 32px; }
+h2 { font-size: 16px; margin-bottom: 4px; }
+h3 { font-size: 13px; margin: 14px 0 6px; }
+.choices { display: grid; gap: 8px; margin-top: 12px; }
+.choice { display: flex; gap: 10px; align-items: flex-start; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; }
+.choice:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.choice input { margin-top: 3px; accent-color: var(--accent); }
+.check { display: flex; gap: 8px; align-items: flex-start; margin-top: 12px; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--accent); }
+.narrow { max-width: 140px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (max-width: 480px) { .grid3 { grid-template-columns: 1fr; } }
+.copy { display: flex; gap: 8px; align-items: flex-start; background: var(--code); border-radius: 8px; padding: 8px 8px 8px 12px; }
+.copy code, .copy pre { flex: 1; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12.5px; padding-top: 6px; }
+.copy .btn { min-height: 30px; padding: 4px 10px; }
+.test { margin-top: 14px; flex-wrap: wrap; }
+.ok { color: var(--good); }
+.err { color: var(--bad); }
+.foot { text-align: center; }
+details summary { cursor: pointer; color: var(--muted); font-size: 13px; margin-top: 8px; }

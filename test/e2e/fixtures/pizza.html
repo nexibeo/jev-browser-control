@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Pizza order</title>
+<style>body{font:16px system-ui;margin:24px;max-width:560px} label{display:block;margin:6px 0} fieldset{margin:12px 0}</style></head>
+<body>
+<h1>Order a pizza</h1>
+<form id="f" onsubmit="event.preventDefault();document.getElementById('out').textContent='ORDER PLACED: '+new URLSearchParams(new FormData(this)).toString()">
+  <label>Customer name <input name="custname"></label>
+  <label>Telephone <input type="tel" name="custtel"></label>
+  <label>Password <input type="password" name="pw"></label>
+  <fieldset><legend>Pizza size</legend>
+    <label><input type="radio" name="size" value="small"> Small</label>
+    <label><input type="radio" name="size" value="medium"> Medium</label>
+    <label><input type="radio" name="size" value="large"> Large</label>
+  </fieldset>
+  <fieldset><legend>Toppings</legend>
+    <label><input type="checkbox" name="topping" value="bacon"> Bacon</label>
+    <label><input type="checkbox" name="topping" value="cheese"> Extra cheese</label>
+    <label><input type="checkbox" name="topping" value="onion"> Onion</label>
+    <label><input type="checkbox" name="topping" value="mushroom"> Mushroom</label>
+  </fieldset>
+  <label>Preferred delivery time <input type="time" name="delivery"></label>
+  <label>Crust <select name="crust"><option>Regular</option><option>Thin</option><option>Stuffed</option></select></label>
+  <label>Delivery instructions <textarea name="comments"></textarea></label>
+  <jev-note></jev-note>
+  <button type="submit">Place order</button>
+</form>
+<p id="out"></p>
+<script>
+customElements.define('jev-note', class extends HTMLElement {
+  connectedCallback() { const r = this.attachShadow({ mode: 'open' }); r.innerHTML = '<button type="button" id="b">Add a gift note</button>'; r.getElementById('b').onclick = () => { document.getElementById('out').textContent = 'GIFT NOTE ADDED'; }; }
+});
+</script>
+</body></html>

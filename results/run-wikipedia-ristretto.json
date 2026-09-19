@@ -1,0 +1,175 @@
+{
+  "recorded": "2026-09-19T15:15:14.465Z",
+  "goal": "Search Wikipedia for \"Ristretto\" and open the Ristretto article.",
+  "url": "https://en.wikipedia.org/wiki/Main_Page",
+  "decisions": [
+    {
+      "type": "decision",
+      "step": 1,
+      "operation": "TYPE_TEXT",
+      "target": "Search Wikipedia",
+      "confidence": 0.93,
+      "target_confidence": 1,
+      "goal_done": 0.01,
+      "ms": 670,
+      "cost": 0.000478086,
+      "alternatives": [
+        {
+          "key": "2",
+          "label": "Search Wikipedia",
+          "p": 1
+        }
+      ],
+      "taskId": "c4b92602-4f9d-45e9-bd18-0555a216efe6",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 2,
+      "operation": "CLICK",
+      "target": "Search",
+      "confidence": 0.94,
+      "target_confidence": 0.94,
+      "goal_done": 0.05,
+      "ms": 457,
+      "cost": 0.0010102499999999999,
+      "alternatives": [
+        {
+          "key": "3",
+          "label": "Search",
+          "p": 0.95
+        },
+        {
+          "key": "2",
+          "label": "Open Search Wikipedia",
+          "p": 0.05
+        },
+        {
+          "key": "1",
+          "label": "Wikipedia The Free Encyclopedia",
+          "p": 0
+        }
+      ],
+      "taskId": "c4b92602-4f9d-45e9-bd18-0555a216efe6",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 2,
+      "operation": "CLICK",
+      "target": "Ristretto Short shot of espresso coffee",
+      "confidence": 0.98,
+      "target_confidence": 0.59,
+      "goal_done": 0.08,
+      "ms": 934,
+      "cost": 0.0015878759999999998,
+      "alternatives": [
+        {
+          "key": "3",
+          "label": "Ristretto Short shot of espresso coffee",
+          "p": 0.6
+        },
+        {
+          "key": "14",
+          "label": "Search",
+          "p": 0.34
+        },
+        {
+          "key": "13",
+          "label": "Search for pages containing Ristretto",
+          "p": 0.04
+        }
+      ],
+      "taskId": "c4b92602-4f9d-45e9-bd18-0555a216efe6",
+      "source": "claude"
+    },
+    {
+      "type": "decision",
+      "step": 3,
+      "operation": "DONE",
+      "confidence": 0.96,
+      "goal_done": 0.95,
+      "ms": 399,
+      "cost": 0.0018368519999999997,
+      "taskId": "c4b92602-4f9d-45e9-bd18-0555a216efe6",
+      "source": "claude"
+    }
+  ],
+  "result": {
+    "status": "done",
+    "note": "",
+    "goal": "Search Wikipedia for \"Ristretto\" and open the Ristretto article.",
+    "steps": [
+      {
+        "step": 1,
+        "operation": "TYPE_TEXT",
+        "action": "Search Wikipedia",
+        "kind": "fill",
+        "text": "Ristretto",
+        "confidence": 0.93,
+        "target_confidence": 1,
+        "goal_done": 0.01,
+        "alternatives": [
+          {
+            "key": "2",
+            "label": "Search Wikipedia",
+            "p": 1
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://en.wikipedia.org/wiki/Main_Page",
+        "decide_ms": 670,
+        "act_ms": 95
+      },
+      {
+        "step": 2,
+        "operation": "CLICK",
+        "action": "Ristretto Short shot of espresso coffee",
+        "kind": "click",
+        "confidence": 0.98,
+        "target_confidence": 0.59,
+        "goal_done": 0.08,
+        "alternatives": [
+          {
+            "key": "3",
+            "label": "Ristretto Short shot of espresso coffee",
+            "p": 0.6
+          },
+          {
+            "key": "14",
+            "label": "Search",
+            "p": 0.34
+          },
+          {
+            "key": "13",
+            "label": "Search for pages containing Ristretto",
+            "p": 0.04
+          }
+        ],
+        "outcome": "done",
+        "page_changed": true,
+        "url": "https://en.wikipedia.org/wiki/Ristretto",
+        "decide_ms": 934,
+        "act_ms": 1109
+      }
+    ],
+    "decisions": 4,
+    "text_calls": [
+      {
+        "field": "Search Wikipedia",
+        "value": "Ristretto",
+        "model": "inception/mercury-2.5",
+        "ms": 505
+      }
+    ],
+    "cost_usd": 0.001837,
+    "elapsed_ms": 4867,
+    "model": "typesafe/jev-1.13-20260917",
+    "final": {
+      "url": "https://en.wikipedia.org/wiki/Ristretto",
+      "title": "Ristretto - Wikipedia",
+      "text": "Jump to content\nSearch\nDonate\nCreate account\nLog in\nContents\nhide\n(Top)\nSee also\nReferences\nExternal links\nRistretto\nArticle\nTalk\nRead\nEdit\nView history\nAppearance\nhide\nText\nSmall\nStandard\nLarge\nWidth\nStandard\nWide\nColor\nAutomatic\nLight\nDark\nFrom Wikipedia, the free encyclopedia\nRistretto\nA double ristretto with the first half of the shot in the glass at the bottom of the image, and the second half in the glass on the right\nRistretto\n(\nItalian:\n[\nrisˈtretto\n]\n),\n[\n1\n]\nknown in full in Italian as\ncaffè ristretto\n, is a \"short shot\" of a highly concentrated\nespresso\n,\n20\nml (0.7\nimp\nfl\noz; 0.7\nUS\nfl\noz)\nfrom a double basket. It is made with the same amount of ground coffee, but extracted (also in from 20 to 30 seconds) using half as much water. A normal short shot might look like a ristretto, but in reality, would only be a weaker, more diluted, shot.\n[\n2\n]\nThe opposite of a\nristretto\n(Italian for 'shortened, narrow') is a\nlungo\n('long'), which has double the amount of water. In France a ristretto is called\ncafé serré\n.\n[\n3\n]\nRegardless of whether one uses a hand-pressed machine or an automatic, a regular double shot is generally considered to be around\n14–18\ng (0.49–0.63\noz)\nof ground coffee extracted into about 40\nml (2\nfl\noz; two shot glasses).\n[\n4\n]\nThus, a \"double ristretto\" consumes the same amount of coffee beans but fills only a single shot glass.\nCoffee contains over a thousand aromatic compounds.\n[\n5\n]\nA ristretto's chemical composition and taste differ from those of a full-length extraction for three reasons:\nMore concentrated\n: the first part of any extraction is the most concentrated, its color typically lying between\ndark chocolate\nand\number\n, whereas the tail end of shots are much lighter, varying from the color of dark\npumpkin pie\nto varying shades of\ntan\n(see photo, above right). This is an important factor when drinking straight espresso shots.\nDifferent balance\n: different chemical compounds in ground coffee dissolve into hot water at different rates. A ristretto contains a greater relative proportion of faster extracting compounds, proportionally fewer of the compounds characteristic of over-extraction, and thus, a different balance."
+    }
+  }
+}

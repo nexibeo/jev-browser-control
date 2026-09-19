@@ -1,0 +1,57 @@
+{
+  "date": "2026-09-19T15:25:40.942Z",
+  "provider": "cloud",
+  "results": [
+    {
+      "name": "extension connects to the MCP bridge",
+      "ok": true,
+      "ms": 62,
+      "note": "Extension: connected (v0.1.0, id gnnidfbejejocmhhmjneoghkdkjpkbac) · Jev provider: cloud"
+    },
+    {
+      "name": "navigate + snapshot lists elements, hides the password field, sees inside shadow DOM",
+      "ok": true,
+      "ms": 114,
+      "note": "14 elements"
+    },
+    {
+      "name": "browser_type + browser_click + browser_select change the page",
+      "ok": true,
+      "ms": 475
+    },
+    {
+      "name": "browser_read and browser_screenshot",
+      "ok": true,
+      "ms": 26,
+      "note": "screenshot 41 KB"
+    },
+    {
+      "name": "jev_find locates an element by description",
+      "ok": true,
+      "ms": 677,
+      "note": "Best match: [9] checkbox \"Mushroom\" (p=0.89, confidence 0.87)",
+      "cost": 0.000169
+    },
+    {
+      "name": "jev_task fills the pizza form and stops before \"Place order\"",
+      "ok": true,
+      "ms": 7214,
+      "note": "Steps: 7 actions, 8 Jev calls, 7.1 s, $0.00689, $0.49 credits left (typesafe/jev-1.13-20260917)",
+      "transcript": "Status: needs_confirmation\nJev wants to click \"Place order\", which may be irreversible. It was not clicked.\nPending: [13] \"Place order\" on http://127.0.0.1:55223/pizza.html. Ask the user; then call browser_click with ref 13, or rerun with allowIrreversible: true.\nSteps: 7 actions, 8 Jev calls, 7.1 s, $0.00689, $0.49 credits left (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Customer name\" ← \"Jeroen Erne\" (0.83)\n2. TYPE_TEXT \"Telephone\" ← \"+31 6 1234 5678\" (0.92)\n3. CLICK \"Large\" (0.97)\n4. CLICK \"Bacon\" (0.93)\n5. CLICK \"Extra cheese\" (0.96)\n6. SELECT \"Crust → Thin\" (1)\n7. TYPE_TEXT \"Preferred delivery time\" ← \"19:30\" (1)\n",
+      "progress": 15
+    },
+    {
+      "name": "jev_task on Wikipedia: search and open an article",
+      "ok": true,
+      "ms": 4706,
+      "note": "Steps: 2 actions, 4 Jev calls, 3.8 s, $0.00918, $0.48 credits left (typesafe/jev-1.13-20260917)",
+      "transcript": "Status: done\nSteps: 2 actions, 4 Jev calls, 3.8 s, $0.00918, $0.48 credits left (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Search Wikipedia\" ← \"Ristretto\" (1)\n2. CLICK \"Ristretto Short shot of espresso coffee\" (0.61)\n"
+    },
+    {
+      "name": "jev_check verifies a statement about the page",
+      "ok": true,
+      "ms": 1271,
+      "note": "yes 0.97, no 0.01"
+    }
+  ]
+}
