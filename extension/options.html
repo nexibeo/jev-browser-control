@@ -62,12 +62,12 @@
       <h2 id="h-claude">2. Connect Claude</h2>
       <p class="hint">A small MCP server runs on your computer when Claude starts. This extension connects to it on <code>127.0.0.1</code> only. Status: <span id="bridgeStatus" class="pill"><span class="dot"></span><span>checking…</span></span></p>
       <h3>Claude Code</h3>
-      <div class="copy"><code id="cmd-code">claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.1.0.tgz</code><button class="btn" data-copy="cmd-code" type="button">Copy</button></div>
+      <div class="copy"><code id="cmd-code">claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz</code><button class="btn" data-copy="cmd-code" type="button">Copy</button></div>
       <h3>Claude Desktop</h3>
       <p class="hint">Settings → Developer → Edit Config, then add:</p>
       <div class="copy"><pre id="cmd-desktop">{
   "mcpServers": {
-    "jev-browser": { "command": "npx", "args": ["-y", "https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.1.0.tgz"] }
+    "jev-browser": { "command": "npx", "args": ["-y", "https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz"] }
   }
 }</pre><button class="btn" data-copy="cmd-desktop" type="button">Copy</button></div>
       <p class="hint">Then ask Claude things like “Use the browser to find the opening hours of the Rijksmuseum.”</p>
@@ -78,8 +78,20 @@
       <label class="check"><input type="checkbox" id="groupTabs"> Put tabs Claude opens in an orange “Jev” tab group</label>
     </section>
 
+    <section class="card" id="remote" aria-labelledby="h-remote">
+      <h2 id="h-remote">3. Remote AI apps (Grok Bot, ChatGPT, claude.ai)</h2>
+      <p class="hint">Apps that run in the cloud can't reach a program on your computer. With this on, the extension keeps a connection open to jevbrowsercontrol.com, and those apps reach your browser through <code>https://jevbrowsercontrol.com/mcp</code> with your key. Status: <span id="relayStatus" class="pill"><span class="dot"></span><span>off</span></span></p>
+      <label class="check"><input type="checkbox" id="remoteEnabled"> Let remote AI apps control this browser</label>
+      <label class="field" for="remoteKey">Key for remote control</label>
+      <input id="remoteKey" type="password" autocomplete="off" spellcheck="false" placeholder="jbc_… (leave empty to use the credits key above)">
+      <p class="hint">Anyone with this key can control this browser while remote control is on, so keep it secret and revoke it in your <a href="https://jevbrowsercontrol.com/dashboard" target="_blank" rel="noopener">dashboard</a> if it leaks. Clicks that buy, pay, send, post or delete always wait for your OK in the side panel.</p>
+      <h3>In the app</h3>
+      <div class="copy"><code id="cmd-remote">MCP server URL: https://jevbrowsercontrol.com/mcp
+Authorization: Bearer &lt;your jbc_ key&gt;</code><button class="btn" data-copy="cmd-remote" type="button">Copy</button></div>
+    </section>
+
     <section class="card" aria-labelledby="h-models">
-      <h2 id="h-models">3. Models</h2>
+      <h2 id="h-models">4. Models</h2>
       <label class="field" for="jevModel">Jev model</label>
       <input id="jevModel" type="text" spellcheck="false">
       <p class="hint"><code>~typesafe/jev-latest</code> always uses the newest Jev. Pin <code>typesafe/jev-1.13</code> to freeze a version.</p>
@@ -89,7 +101,7 @@
     </section>
 
     <section class="card" aria-labelledby="h-limits">
-      <h2 id="h-limits">4. Limits per task</h2>
+      <h2 id="h-limits">5. Limits per task</h2>
       <div class="grid3">
         <div><label class="field" for="maxSteps">Actions</label><input id="maxSteps" type="number" min="1" max="200"></div>
         <div><label class="field" for="maxSeconds">Seconds</label><input id="maxSeconds" type="number" min="5" max="1800"></div>
@@ -98,7 +110,7 @@
     </section>
 
     <section class="card" aria-labelledby="h-safety">
-      <h2 id="h-safety">5. Safety</h2>
+      <h2 id="h-safety">6. Safety</h2>
       <label class="check"><input type="checkbox" id="confirmIrreversible"> Ask before clicks that are hard to undo (buy, pay, send, delete, post)</label>
       <p class="hint">Password and file-upload fields are never offered to Jev or Claude.</p>
       <label class="field" for="blockedSites">Blocked sites</label>

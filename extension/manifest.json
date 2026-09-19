@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Jev Browser Control",
   "short_name": "Jev",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Let Claude and Jev, a fast decision model, control your Chrome. About half a second and a fraction of a cent per step.",
   "homepage_url": "https://jevbrowsercontrol.com",
   "minimum_chrome_version": "120",

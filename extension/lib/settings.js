@@ -32,6 +32,11 @@ export const DEFAULTS = {
   bridgeEnabled: true,
   bridgePort: 10522,
   groupTabs: true, // put tabs Claude opens in an orange "Jev" tab group
+
+  // Remote control: remote AI apps (Grok Bot, ChatGPT, claude.ai) reach this browser through
+  // jevbrowsercontrol.com/mcp. Off by default. Authenticated with remoteKey, or the credits key.
+  remoteEnabled: false,
+  remoteKey: '',
 };
 
 export async function loadSettings() {
@@ -67,5 +72,13 @@ export function describe(settings) {
     limits: { max_steps: settings.maxSteps, max_seconds: settings.maxSeconds, max_cost_usd: settings.maxCostUsd },
     confirm_irreversible: settings.confirmIrreversible,
     input_mode: settings.inputMode,
+    remote_enabled: !!settings.remoteEnabled,
   };
+}
+
+export function relayEndpoint(settings) {
+  const key = settings.remoteKey || settings.cloudKey;
+  if (!settings.remoteEnabled || !key) return null;
+  const base = String(settings.cloudBase || DEFAULTS.cloudBase).replace(/\/+$/, '').replace(/^http/, 'ws');
+  return { url: `${base}/api/relay`, protocols: ['jbc.v1', `key.${key}`] };
 }

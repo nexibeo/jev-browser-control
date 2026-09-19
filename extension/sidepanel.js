@@ -21,6 +21,13 @@ function setClaude(connected) {
   el.querySelector('span:last-child').textContent = connected ? 'Claude connected' : 'Claude not connected';
 }
 
+function setRemote({ enabled, connected }) {
+  const el = $('remote');
+  el.hidden = !enabled;
+  el.querySelector('.dot').className = 'dot' + (connected ? ' on' : ' warn');
+  el.querySelector('span:last-child').textContent = connected ? 'Remote on' : 'Remote: connecting';
+}
+
 function setProvider(s) {
   const el = $('provider');
   const name = s.provider === 'cloud' ? 'Credits' : s.provider === 'custom' ? 'Custom' : 'OpenRouter';
@@ -57,7 +64,7 @@ function onEvent(e) {
     $('log').innerHTML = '';
     $('result').hidden = true;
     setRunning(true);
-    li(`<span class="n">▸</span><span class="what">${esc(e.goal)}<span class="typed">${esc(e.title || e.url)}${e.source === 'claude' ? ' · from Claude' : ''}</span></span><span></span>`);
+    li(`<span class="n">▸</span><span class="what">${esc(e.goal)}<span class="typed">${esc(e.title || e.url)}${e.source === 'claude' ? ' · from Claude' : e.source === 'remote' ? ' · from a remote app' : ''}</span></span><span></span>`);
     return;
   }
   if (e.taskId !== running) return;
@@ -84,8 +91,10 @@ port.onMessage.addListener((msg) => {
   if (msg.type === 'state') {
     setClaude(msg.bridge.connected);
     setProvider(msg.settings);
+    if (msg.relay) setRemote(msg.relay);
     if (msg.running.length) { running = msg.running[0].taskId; setRunning(true); }
   } else if (msg.type === 'bridge') setClaude(msg.connected);
+  else if (msg.type === 'relay') setRemote(msg);
   else if (msg.type === 'settings') setProvider(msg.settings);
   else if (msg.type === 'event') onEvent(msg.event);
   else if (msg.type === 'idle') { if (!running || msg.taskId === running) setRunning(false); }
@@ -95,11 +104,14 @@ port.onMessage.addListener((msg) => {
     r.className = 'card result bad';
     r.innerHTML = `<h3>Couldn't run</h3><p>${esc(msg.message)}</p>`;
     r.hidden = false;
+  } else if (msg.type === 'confirm-expired') {
+    if (msg.id === confirmId) { $('confirm').hidden = true; confirmId = null; }
   } else if (msg.type === 'confirm') {
     confirmId = msg.id;
     let host = msg.url;
     try { host = new URL(msg.url).hostname; } catch {}
-    $('confirm-text').textContent = `Jev wants to click “${msg.label}” on ${host}. This may be hard to undo.`;
+    const who = msg.source === 'remote' ? 'A remote app wants' : 'Jev wants';
+    $('confirm-text').textContent = `${who} to click “${msg.label}” on ${host}. This may be hard to undo.`;
     $('confirm').hidden = false;
     $('allow').focus();
   }

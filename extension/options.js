@@ -71,15 +71,21 @@ async function init() {
 
 // The side panel port also reports the bridge; here a short-lived port asks once a second.
 function pollBridge() {
-  const port = chrome.runtime.connect({ name: 'panel' });
+  const port = chrome.runtime.connect({ name: 'options' });
   const set = (on) => {
     const el = $('bridgeStatus');
     el.querySelector('.dot').className = 'dot' + (on ? ' on' : '');
     el.querySelector('span:last-child').textContent = on ? 'Claude connected' : 'Claude not running';
   };
+  const setRelay = ({ enabled, connected }) => {
+    const el = $('relayStatus');
+    el.querySelector('.dot').className = 'dot' + (connected ? ' on' : enabled ? ' warn' : '');
+    el.querySelector('span:last-child').textContent = connected ? 'connected' : enabled ? 'connecting…' : 'off';
+  };
   port.onMessage.addListener((m) => {
-    if (m.type === 'state') set(m.bridge.connected);
+    if (m.type === 'state') { set(m.bridge.connected); if (m.relay) setRelay(m.relay); }
     if (m.type === 'bridge') set(m.connected);
+    if (m.type === 'relay') setRelay(m);
   });
   port.postMessage({ type: 'getState' });
 }

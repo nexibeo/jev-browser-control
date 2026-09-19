@@ -3,7 +3,7 @@
 MCP server for [Jev Browser Control](https://jevbrowsercontrol.com): lets Claude Code, Claude Desktop and other MCP clients control your own Chrome through the Jev Browser Control extension. Node.js 22+, no dependencies.
 
 ```bash
-claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.1.0.tgz
+claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz
 ```
 
 The server speaks MCP over stdio and opens a bridge on `127.0.0.1:10522` that the extension connects to. Install the extension first: [jevbrowsercontrol.com/docs#install](https://jevbrowsercontrol.com/docs#install).

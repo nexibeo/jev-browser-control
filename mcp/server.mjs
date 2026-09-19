@@ -2,7 +2,7 @@
 // Jev Browser Control MCP server.
 // Claude starts this over stdio. It opens a local bridge (127.0.0.1:10522) that the
 // Chrome extension connects to, and exposes browser_* and jev_* tools.
-//   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.1.0.tgz
+//   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz
 //   (or, from a clone: claude mcp add jev-browser -- node /path/to/mcp/server.mjs)
 // Environment: JBC_PORT (default 10522), JBC_EXTENSION_IDS (comma-separated allowlist), JBC_DEBUG=1.
 import { readFileSync } from 'node:fs';

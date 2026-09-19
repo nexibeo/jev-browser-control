@@ -41,7 +41,7 @@ const PAGE = {
 function fakeExtension() {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(`ws://127.0.0.1:${port}/extension`, { headers: { origin: EXT } });
-    ws.onopen = () => { ws.send(JSON.stringify({ type: 'hello', version: '0.1.0', extensionId: 'c'.repeat(32) })); resolve(ws); };
+    ws.onopen = () => { ws.send(JSON.stringify({ type: 'hello', version: '0.2.0', extensionId: 'c'.repeat(32) })); resolve(ws); };
     ws.onerror = reject;
     ws.onmessage = (ev) => {
       const m = JSON.parse(ev.data);

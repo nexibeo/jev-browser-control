@@ -27,12 +27,14 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
    or without cloning:
 
    ```bash
-   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.1.0.tgz
+   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz
    ```
 
    Claude Desktop: add `{"mcpServers": {"jev-browser": {"command": "node", "args": ["/path/to/mcp/server.mjs"]}}}` to its config.
 
 Then ask Claude: *“Use the browser to search Wikipedia for Ristretto and tell me where the name comes from.”*
+
+**Grok Bot, ChatGPT, claude.ai and other cloud apps.** They can't start a local program, so jevbrowsercontrol.com offers the same tools as a remote MCP server at `https://jevbrowsercontrol.com/mcp` (bearer: your `jbc_` key). Switch on **Remote AI apps** in the extension's settings and the extension keeps an outbound connection to the relay; it's off by default, and clicks that buy, pay, send, post or delete always wait for your OK in the side panel. For Grok Bot there is a ready-made template: [Jev Browser Operator](https://templatesgrokbot.com/bot/jev-browser-operator).
 
 **Claude Code and OpenAI Codex agent files.** [`agents/`](agents) has a skill (works in both) and a Claude Code subagent. `node scripts/install-agents.mjs` registers the MCP server and installs them for whichever of the two you have.
 
@@ -72,7 +74,7 @@ Recorded traces are in [`results/`](results).
 | --- | --- |
 | `extension/` | Manifest V3 extension: `background.js` (router), `lib/agent.js` (the loop), `lib/policy.js` (questions), `lib/page.js` (in-page snapshot and input), `lib/driver.js` (Chrome and CDP), `lib/provider.js` (OpenRouter / credits / custom), side panel and settings |
 | `mcp/` | Zero-dependency MCP server: stdio JSON-RPC, a small RFC 6455 WebSocket bridge on 127.0.0.1, and peer mode so several Claude sessions share one browser |
-| `test/` | Unit tests (policy, agent loop, bridge, MCP over stdio) and `e2e/run.mjs` (real Chrome + extension + MCP + live Jev) |
+| `test/` | Unit tests (policy, agent loop, bridge, MCP over stdio), `e2e/run.mjs` (real Chrome + extension + MCP + live Jev) and `e2e/remote.mjs` (the same through the jevbrowsercontrol.com relay) |
 | `agents/` | A skill for Claude Code and Codex, and a Claude Code subagent |
 | `scripts/` | `install-agents.mjs` (set up Claude Code and Codex), `build-zip.mjs` (release zip and npm tarball), `record-run.mjs` (record a task with every decision), `make-icons.mjs` |
 
@@ -96,6 +98,7 @@ npm run zip                 # dist/ extension zip + MCP tarball
 
 ## Safety and limits
 
+- Remote control is off until you switch it on. While it's on, anyone with that `jbc_` key can reach your browser through the relay, so keep the key secret and revoke it in the dashboard if it leaks. Remote callers can never skip the confirmation for irreversible clicks.
 - The bridge listens on 127.0.0.1 only. Web pages can't connect (they can't forge a `chrome-extension://` origin); other MCP sessions need a token from your home folder.
 - The agent acts in your normal profile, with your logins. Use a separate Chrome profile for risky work, and list sites like your bank under **Blocked sites**.
 - Page text is sent to Jev as untrusted data, but prompt injection can still mislead a model. Keep limits on and check results; Jev can pick a confident near-miss between look-alike names.

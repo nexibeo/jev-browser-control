@@ -1,6 +1,6 @@
 {
   "name": "jev-browser-control-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server that lets Claude control your Chrome through the Jev Browser Control extension. Jev, a fast decision model, handles multi-step browser work in about half a second per step.",
   "type": "module",
   "bin": {

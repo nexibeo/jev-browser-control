@@ -5,8 +5,11 @@
 // and {type:'event', id, event} for progress. A ping every 20 s keeps the service worker alive.
 
 export class Bridge {
-  constructor({ port, onRequest, onStatus, version }) {
+  // endpoint: null for the local MCP bridge on 127.0.0.1:<port>, or { url, protocols } for the remote relay.
+  constructor({ port, endpoint = null, source = 'claude', onRequest, onStatus, version }) {
     this.port = port;
+    this.endpoint = endpoint;
+    this.source = source;
     this.onRequest = onRequest;
     this.onStatus = onStatus || (() => {});
     this.version = version;
@@ -17,6 +20,14 @@ export class Bridge {
     this.timer = null;
     this.pinger = null;
     this.enabled = true;
+  }
+
+  setEndpoint(endpoint) {
+    if (JSON.stringify(endpoint) === JSON.stringify(this.endpoint)) return;
+    this.endpoint = endpoint;
+    this.close();
+    this.retry = 1000;
+    if (endpoint) this.connect();
   }
 
   setPort(port) {
@@ -49,24 +60,28 @@ export class Bridge {
 
   async connect() {
     if (!this.enabled || (this.ws && this.ws.readyState <= 1)) return;
+    if (this.source === 'remote' && !this.endpoint) return;
     clearTimeout(this.timer);
     let health = null;
-    try {
-      const res = await fetch(`http://127.0.0.1:${this.port}/health`, { signal: AbortSignal.timeout(1500) });
-      health = await res.json();
-    } catch {
-      return this.schedule();
+    if (!this.endpoint) {
+      try {
+        const res = await fetch(`http://127.0.0.1:${this.port}/health`, { signal: AbortSignal.timeout(1500) });
+        health = await res.json();
+      } catch {
+        return this.schedule();
+      }
+      if (health?.service !== 'jev-browser-control') return this.schedule();
     }
-    if (health?.service !== 'jev-browser-control') return this.schedule();
     if (this.ws && this.ws.readyState <= 1) return;
-    const ws = new WebSocket(`ws://127.0.0.1:${this.port}/extension`);
+    const ws = this.endpoint ? new WebSocket(this.endpoint.url, this.endpoint.protocols) : new WebSocket(`ws://127.0.0.1:${this.port}/extension`);
     this.ws = ws;
     ws.onopen = () => {
       this.retry = 1000;
       ws.send(JSON.stringify({ type: 'hello', role: 'extension', version: this.version, extensionId: chrome.runtime.id, userAgent: navigator.userAgent }));
-      this.setConnected(true, { version: health.version, clients: health.clients });
+      this.setConnected(true, health ? { version: health.version, clients: health.clients } : { remote: true });
       clearInterval(this.pinger);
-      this.pinger = setInterval(() => this.send({ type: 'ping', t: Date.now() }), 20_000);
+      // Exactly this text: the relay answers it without waking up (and it keeps the service worker alive).
+      this.pinger = setInterval(() => this.ws?.readyState === 1 && this.ws.send('{"type":"ping"}'), 20_000);
     };
     ws.onmessage = (ev) => this.handle(ev.data);
     ws.onclose = () => {
@@ -82,7 +97,7 @@ export class Bridge {
     if (!this.enabled) return;
     clearTimeout(this.timer);
     this.timer = setTimeout(() => this.connect(), this.retry);
-    this.retry = Math.min(this.retry * 2, 10_000);
+    this.retry = Math.min(this.retry * 2, this.endpoint ? 60_000 : 10_000);
   }
 
   send(msg) {
@@ -96,7 +111,7 @@ export class Bridge {
     if (msg.type !== 'request') return;
     const emit = (event) => this.send({ type: 'event', id: msg.id, event });
     try {
-      const result = await this.onRequest(msg.method, msg.params || {}, { emit, source: 'claude' });
+      const result = await this.onRequest(msg.method, msg.params || {}, { emit, source: this.source });
       this.send({ type: 'response', id: msg.id, result });
     } catch (err) {
       this.send({ type: 'response', id: msg.id, error: { message: String(err?.message || err), code: err?.code } });

@@ -1,21 +1,24 @@
 // Service worker: routes requests from Claude (via the MCP bridge) and from the side panel
 // to the Chrome driver and the Jev agent.
-import { loadSettings, saveSettings, isBlocked, describe, DEFAULTS } from './lib/settings.js';
+import { loadSettings, saveSettings, isBlocked, describe, relayEndpoint, DEFAULTS } from './lib/settings.js';
+import { IRREVERSIBLE } from './lib/policy.js';
 import { makeProvider } from './lib/provider.js';
 import { runTask, findElement, checkPage } from './lib/agent.js';
 import { ChromeDriver, releaseDebugger } from './lib/driver.js';
 import { Bridge } from './lib/bridge.js';
 
 const VERSION = chrome.runtime.getManifest().version;
-const panels = new Set(); // open side panel ports
+const ports = new Set(); // every open extension page (side panels and the settings page) for status updates
+const panels = new Set(); // open side panels only: the pages that can answer a confirmation
 const tasks = new Map(); // taskId -> { abort, tabId, source, goal }
 const confirms = new Map(); // confirmId -> resolve
-let bridge;
+let bridge; // local MCP server (Claude Code, Codex, Claude Desktop)
+let relay; // jevbrowsercontrol.com relay for remote AI apps (Grok Bot, ChatGPT, claude.ai); off by default
 
 // ---------- helpers ----------
 
 function broadcast(msg) {
-  for (const p of panels) { try { p.postMessage(msg); } catch {} }
+  for (const p of ports) { try { p.postMessage(msg); } catch {} }
 }
 
 async function currentTabId(params = {}) {
@@ -80,6 +83,18 @@ async function setBadge(text) {
   await chrome.action.setBadgeText({ text }).catch(() => {});
 }
 
+// Ask the person in the side panel. Resolves false at once when no side panel is open,
+// and after a minute without an answer.
+function askPanel({ label, url, taskId, source }) {
+  if (!panels.size) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const cid = crypto.randomUUID();
+    const timer = setTimeout(() => { confirms.delete(cid); broadcast({ type: 'confirm-expired', id: cid }); resolve(false); }, 60_000);
+    confirms.set(cid, (ok) => { clearTimeout(timer); resolve(ok); });
+    for (const p of panels) { try { p.postMessage({ type: 'confirm', id: cid, taskId, label, url, source }); } catch {} }
+  });
+}
+
 // ---------- the Jev task runner (shared by Claude and the side panel) ----------
 
 async function startTask({ goal, details, url, tabId, newTab, maxSteps, maxSeconds, allowIrreversible }, { emit = () => {}, source }) {
@@ -109,12 +124,10 @@ async function startTask({ goal, details, url, tabId, newTab, maxSteps, maxSecon
     emit(e);
     if (event.type === 'action') setBadge(String(event.step));
   };
-  // Irreversible clicks: the side panel asks the person; Claude's calls stop and report instead.
-  const confirm = source === 'panel' ? ({ label, url: pageUrl }) => new Promise((resolve) => {
-    const cid = crypto.randomUUID();
-    confirms.set(cid, resolve);
-    broadcast({ type: 'confirm', id: cid, taskId, label, url: pageUrl });
-  }) : undefined;
+  // Irreversible clicks: the side panel asks the person. Claude's local calls stop and report instead.
+  // Remote apps can never skip the question: they get the side panel's answer, or a stop.
+  const confirm = source === 'panel' || source === 'remote' ? ({ label, url: pageUrl }) => askPanel({ label, url: pageUrl, taskId, source }) : undefined;
+  if (source === 'remote') allowIrreversible = false;
   await setBadge('…');
   try {
     return await runTask({
@@ -182,9 +195,17 @@ const handlers = {
     return { tabId: driver.tabId, page };
   },
 
-  async click(params) {
+  async click(params, ctx = {}) {
     const settings = await loadSettings();
     const driver = await driverFor(params, settings);
+    if (ctx.source === 'remote' && settings.confirmIrreversible !== false) {
+      const p = await driver.run('prepare', { ref: Number(params.ref), kind: 'click' });
+      if (p?.label && IRREVERSIBLE.test(p.label)) {
+        const tab = await chrome.tabs.get(driver.tabId);
+        const ok = await askPanel({ label: p.label, url: tab.url, source: 'remote' });
+        if (!ok) throw new Error(`Clicking "${p.label}" needs the user's OK. Ask them to open the Jev side panel in Chrome and approve it, or to click it themselves.`);
+      }
+    }
     const r = await driver.click(Number(params.ref));
     await driver.settle({ kind: 'click', ref: Number(params.ref) });
     return { ...r, ...(await brief(driver)) };
@@ -286,12 +307,13 @@ async function onRequest(method, params, ctx) {
 // ---------- side panel ----------
 
 chrome.runtime.onConnect.addListener((port) => {
-  if (port.name !== 'panel') return;
-  panels.add(port);
-  port.onDisconnect.addListener(() => panels.delete(port));
+  if (port.name !== 'panel' && port.name !== 'options') return;
+  ports.add(port);
+  if (port.name === 'panel') panels.add(port);
+  port.onDisconnect.addListener(() => { ports.delete(port); panels.delete(port); });
   const sendState = async () => {
     const settings = await loadSettings();
-    port.postMessage({ type: 'state', bridge: { connected: bridge?.connected, port: settings.bridgePort, enabled: settings.bridgeEnabled }, settings: describe(settings), running: [...tasks.entries()].map(([id, t]) => ({ taskId: id, goal: t.goal, source: t.source, tabId: t.tabId })) });
+    port.postMessage({ type: 'state', bridge: { connected: bridge?.connected, port: settings.bridgePort, enabled: settings.bridgeEnabled }, relay: { enabled: !!relayEndpoint(settings), connected: !!relay?.connected }, settings: describe(settings), running: [...tasks.entries()].map(([id, t]) => ({ taskId: id, goal: t.goal, source: t.source, tabId: t.tabId })) });
   };
   port.onMessage.addListener(async (msg) => {
     if (msg.type === 'getState') return sendState();
@@ -305,9 +327,10 @@ chrome.runtime.onConnect.addListener((port) => {
         port.postMessage({ type: 'error', message: String(err.message || err) });
       }
     }
-    if (msg.type === 'reconnect') bridge?.connect();
+    if (msg.type === 'reconnect') { bridge?.connect(); relay?.connect(); }
   });
   bridge?.connect();
+  relay?.connect();
   sendState();
 });
 
@@ -322,13 +345,28 @@ async function init() {
     onStatus: (s) => broadcast({ type: 'bridge', ...s }),
   });
   bridge.setEnabled(settings.bridgeEnabled);
+  relay ||= new Bridge({
+    endpoint: relayEndpoint(settings),
+    source: 'remote',
+    version: VERSION,
+    onRequest,
+    onStatus: (s) => broadcast({ type: 'relay', connected: s.connected, enabled: !!relay?.endpoint }),
+  });
+  relay.setEndpoint(relayEndpoint(settings));
+  relay.connect();
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== 'local' || !bridge) return;
   if (changes.bridgePort) bridge.setPort(changes.bridgePort.newValue ?? DEFAULTS.bridgePort);
   if (changes.bridgeEnabled) bridge.setEnabled(changes.bridgeEnabled.newValue !== false);
-  loadSettings().then((s) => broadcast({ type: 'settings', settings: describe(s) }));
+  loadSettings().then((s) => {
+    if (relay && (changes.remoteEnabled || changes.remoteKey || changes.cloudKey || changes.cloudBase)) {
+      relay.setEndpoint(relayEndpoint(s));
+      broadcast({ type: 'relay', connected: relay.connected, enabled: !!relay.endpoint });
+    }
+    broadcast({ type: 'settings', settings: describe(s) });
+  });
 });
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
@@ -337,7 +375,7 @@ chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   if (reason === 'install') chrome.runtime.openOptionsPage();
 });
 chrome.runtime.onStartup.addListener(() => chrome.alarms.create('bridge', { periodInMinutes: 0.5 }));
-chrome.alarms.onAlarm.addListener((a) => { if (a.name === 'bridge') init().then(() => bridge.connect()); });
+chrome.alarms.onAlarm.addListener((a) => { if (a.name === 'bridge') init().then(() => { bridge.connect(); relay.connect(); }); });
 
 // Settings page "Test" button and first-run checks.
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
