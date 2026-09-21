@@ -1,3 +1,7 @@
+import { EDITION } from './edition.js';
+
+export const SERVICE = EDITION === 'service'; // credits only, no own key
+
 // Every setting, its default, and how it is stored (chrome.storage.local: keys never sync to other devices).
 export const DEFAULTS = {
   // Where Jev runs: 'cloud' (Jev Browser Control credits), 'openrouter' (your own key) or 'custom'.
@@ -41,7 +45,9 @@ export const DEFAULTS = {
 
 export async function loadSettings() {
   const stored = await chrome.storage.local.get(Object.keys(DEFAULTS));
-  return { ...DEFAULTS, ...stored };
+  const settings = { ...DEFAULTS, ...stored };
+  if (SERVICE) settings.provider = 'cloud';
+  return settings;
 }
 
 export async function saveSettings(patch) {

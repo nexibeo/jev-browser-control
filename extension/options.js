@@ -1,4 +1,4 @@
-import { DEFAULTS, loadSettings, saveSettings } from './lib/settings.js';
+import { DEFAULTS, loadSettings, saveSettings, SERVICE } from './lib/settings.js';
 
 const $ = (id) => document.getElementById(id);
 const FIELDS = Object.keys(DEFAULTS).filter((k) => k !== 'provider');
@@ -6,10 +6,15 @@ let savedTimer;
 
 function showProvider(p) {
   for (const el of document.querySelectorAll('[data-for]')) el.hidden = el.dataset.for !== p;
+  // The service edition (from jevbrowsercontrol.com) runs on credits only.
+  if (SERVICE) {
+    for (const el of document.querySelectorAll('[data-oss]')) el.hidden = true;
+    for (const el of document.querySelectorAll('[data-service]')) el.hidden = false;
+  }
 }
 
 function read() {
-  const patch = { provider: document.querySelector('input[name=provider]:checked')?.value || 'cloud' };
+  const patch = { provider: SERVICE ? 'cloud' : document.querySelector('input[name=provider]:checked')?.value || 'cloud' };
   for (const k of FIELDS) {
     const el = $(k);
     if (!el) continue;

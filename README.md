@@ -16,6 +16,8 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
 - **An MCP server** for Claude Code and Claude Desktop with 17 tools: `browser_snapshot`, `browser_click`, `browser_type`, `browser_navigate`, `browser_read`, `browser_screenshot` and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`.
 - **Your choice of who pays for Jev:** your own OpenRouter key (free, this repo), prepaid credits from [jevbrowsercontrol.com](https://jevbrowsercontrol.com/dashboard) (one key, 5× OpenRouter's price), or any compatible endpoint such as TypeSafe direct.
 
+> **Two editions, one codebase.** This repo is the open-source edition: load `extension/` and use your own OpenRouter key, credits, or a custom endpoint. The download on jevbrowsercontrol.com is the service edition, built from the same code with `lib/edition.js` set to `service`: it runs on credits only. `npm run zip` builds both (`dist/` and `dist/oss/`).
+
 ## Quick start
 
 1. **Install the extension.** Clone this repo (or download the [zip](https://jevbrowsercontrol.com/downloads/jev-browser-control-extension.zip)), open `chrome://extensions`, switch on Developer mode, click **Load unpacked** and pick the `extension/` folder.

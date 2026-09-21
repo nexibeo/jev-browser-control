@@ -69,3 +69,5 @@ label.field { display: block; font-weight: 600; margin: 12px 0 4px; }
 .row { display: flex; gap: 8px; align-items: center; }
 .grow { flex: 1; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+[hidden] { display: none !important; }

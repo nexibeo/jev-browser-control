@@ -2,19 +2,44 @@
   "manifest_version": 3,
   "name": "Jev Browser Control",
   "short_name": "Jev",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Let Claude and Jev, a fast decision model, control your Chrome. About half a second and a fraction of a cent per step.",
   "homepage_url": "https://jevbrowsercontrol.com",
   "minimum_chrome_version": "120",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn78KLHdGtIPZQ2887jX/BmNc2r0rnYGm9M104NpAv4n+I3ik4wbBNdml1q4pBOY5aj2i+c+TQjYRMIvkq4r9K5avNSNkNdLTLOAjEH2ZTQtLes2IGrhpxGMNNav1vnHA3gGPDQK0AhtTEoEkXnEHptfff/rAIIEAtKpVCW+q0WIoABhH7qOblVfbLU/sVO7E738V2JWZJBo6nE5jsbQBy3WxoI5y9/qKNeuOshkc/l9KxvIPLWRdobLk1/FzUfj1BumsjhlzQ8V/8TxoDSrCb3EKulNja7XO1Ge6I1dU/hOJS7nfM0nve7AYMrHz2GzXJcH8hH2dRmXSHuiU7YZHrwIDAQAB",
-  "permissions": ["tabs", "tabGroups", "scripting", "storage", "sidePanel", "debugger", "alarms"],
-  "host_permissions": ["<all_urls>"],
-  "background": { "service_worker": "background.js", "type": "module" },
-  "side_panel": { "default_path": "sidepanel.html" },
+  "permissions": [
+    "tabs",
+    "tabGroups",
+    "scripting",
+    "storage",
+    "sidePanel",
+    "debugger",
+    "alarms"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
   "options_page": "options.html",
   "action": {
     "default_title": "Jev Browser Control",
-    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
-  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" }
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
 }

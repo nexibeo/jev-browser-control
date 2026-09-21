@@ -15,9 +15,9 @@
 
   <main class="wrap">
     <section class="card" aria-labelledby="h-provider">
-      <h2 id="h-provider">1. Where Jev runs</h2>
+      <h2 id="h-provider"><span data-oss>1. Where Jev runs</span><span data-service hidden>1. Your key</span></h2>
       <p class="hint">Jev is TypeSafe's decision model. Each browser step is one Jev call; typing a value uses one call to a small text model.</p>
-      <div class="choices" role="radiogroup" aria-label="Provider">
+      <div class="choices" role="radiogroup" aria-label="Provider" data-oss>
         <label class="choice"><input type="radio" name="provider" value="cloud">
           <span><strong>Jev Browser Control credits</strong><br><span class="hint">One key, no other accounts. Prepaid credits; a typical task costs about a cent.</span></span></label>
         <label class="choice"><input type="radio" name="provider" value="openrouter">
@@ -35,12 +35,12 @@
           <input id="cloudBase" type="url" spellcheck="false">
         </details>
       </div>
-      <div data-for="openrouter">
+      <div data-for="openrouter" data-oss>
         <label class="field" for="openrouterKey">OpenRouter API key</label>
         <input id="openrouterKey" type="password" autocomplete="off" spellcheck="false" placeholder="sk-or-…">
         <p class="hint">Create one at <a href="https://openrouter.ai/settings/keys" target="_blank" rel="noopener">openrouter.ai/settings/keys</a>. Setting a credit limit on the key is a good idea.</p>
       </div>
-      <div data-for="custom">
+      <div data-for="custom" data-oss>
         <label class="field" for="customDecisionsUrl">Decisions URL</label>
         <input id="customDecisionsUrl" type="url" spellcheck="false">
         <label class="field" for="customKey">Key for the decisions URL</label>
