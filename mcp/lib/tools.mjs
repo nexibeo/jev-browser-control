@@ -7,7 +7,7 @@ export const TOOLS = [
   {
     name: 'browser_status',
     title: 'Browser status',
-    description: 'Check that the Jev Browser Control extension is connected, which tab is current, and how Jev is configured (provider, models, limits). Call this first if another tool reports the extension is not connected.',
+    description: 'Check that the browser is ready, which tab is current, and how Jev is configured (key, models, limits). Call this first, and whenever another tool reports a problem.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
     annotations: { readOnlyHint: true },
     method: 'status',
@@ -29,7 +29,7 @@ export const TOOLS = [
   {
     name: 'browser_navigate',
     title: 'Open a URL',
-    description: 'Open a URL in the current tab, or in a new tab (grouped under "Jev") with newTab: true. Returns the page\'s visible elements.',
+    description: 'Open a URL in the current tab, or in a new tab with newTab: true. Returns the page\'s visible elements.',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'http or https URL' }, newTab: { type: 'boolean', default: false }, tabId },
@@ -247,6 +247,16 @@ export function formatTask(r) {
 export function formatResult(tool, result) {
   switch (tool) {
     case 'browser_status':
+      if (result.mode === 'browser') return [
+        `Browser: ready (Jev Browser Control ${result.version}, ${result.browser.executable}${result.browser.headless ? ', headless' : ', visible window'}, ${result.browser.tabs} tab(s))`,
+        `Profile: ${result.browser.profile} (logins made in this window are kept)`,
+        result.current_tab ? `Current tab: ${result.current_tab.tabId} · ${result.current_tab.title || '(no title)'} — ${result.current_tab.url}` : 'Current tab: none',
+        `Jev: ${result.settings.provider === 'cloud' ? 'jevbrowsercontrol.com credits' : 'own OpenRouter key'}${result.settings.key_set ? '' : ' (NO KEY SET: jev_* tools will fail until the user adds OPENROUTER_API_KEY or JBC_API_KEY to ~/.jev-browser-control/config.env)'}`,
+        `Models: ${result.settings.jev_model} + ${result.settings.text_model}`,
+        `Limits per task: ${result.settings.limits.max_steps} actions, ${result.settings.limits.max_seconds} s, $${result.settings.limits.max_cost_usd}`,
+        `Stops before irreversible clicks: ${result.settings.confirm_irreversible ? 'yes' : 'no'}`,
+        result.running_tasks.length ? `Running: ${result.running_tasks.map((t) => `${q(t.goal)} in tab ${t.tabId}`).join('; ')}` : 'No Jev task running.',
+      ].join('\n');
       return [
         `Extension: connected (v${result.version}, id ${result.extensionId})`,
         result.current_tab ? `Current tab: ${result.current_tab.tabId} · ${result.current_tab.title} — ${result.current_tab.url}` : 'Current tab: none',

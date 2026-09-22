@@ -36,7 +36,11 @@ function peerToken(dir) {
 const same = (a, b) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
 
 export class Hub {
-  constructor({ port, version, allowedExtensionIds = [], home, log = () => {} }) {
+  // local: an object with handle(method, params, { onEvent }) that serves requests itself
+  // (browser mode). Without it, the owner forwards requests to the Chrome extension.
+  constructor({ port, version, allowedExtensionIds = [], home, log = () => {}, local = null, mode = 'extension' }) {
+    this.local = local;
+    this.modeName = mode;
     this.port = port;
     this.version = version;
     this.allowed = allowedExtensionIds;
@@ -74,7 +78,7 @@ export class Hub {
       onHttp: (req, res) => {
         if (req.method === 'GET' && req.url === '/health') {
           res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
-          res.end(JSON.stringify({ service: 'jev-browser-control', version: this.version, extension: !!this.extension, clients: this.peers.size + 1 }));
+          res.end(JSON.stringify({ service: 'jev-browser-control', mode: this.modeName, version: this.version, extension: !!this.extension, clients: this.peers.size + 1 }));
           return true;
         }
         return false;
@@ -209,6 +213,11 @@ export class Hub {
   // ---------- requests ----------
 
   async request(method, params = {}, { timeoutMs = 60_000, onEvent } = {}) {
+    if (this.mode === 'owner' && this.local) {
+      let timer;
+      const timeout = new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`The browser did not answer within ${Math.round(timeoutMs / 1000)} s.`)), timeoutMs); });
+      try { return await Promise.race([this.local.handle(method, params, { onEvent }), timeout]); } finally { clearTimeout(timer); }
+    }
     if (this.mode === 'owner') {
       if (!this.extension || !this.extensionInfo) await this.waitForExtension(4000);
       if (!this.extension) throw new NotConnectedError(this.port);
@@ -233,11 +242,14 @@ export class Hub {
     return { mode: this.mode, port: this.port, extension: this.mode === 'owner' ? this.extensionInfo : undefined, peers: this.peers.size };
   }
 
+  // Resolves once the browser this server opened has closed, so the next owner can reuse its profile.
   close() {
     this.closed = true;
+    const local = this.local?.close?.();
     this.extension?.close();
     for (const p of this.peers) p.close();
     this.peerSocket?.close();
     this.server?.close();
+    return Promise.resolve(local);
   }
 }

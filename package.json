@@ -1,7 +1,7 @@
 {
   "name": "jev-browser-control",
   "private": true,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Chrome extension + Claude MCP server: control your own Chrome with Claude and Jev, TypeSafe's fast decision model.",
   "type": "module",
   "license": "MIT",
@@ -11,6 +11,7 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "e2e": "node --env-file-if-exists=.env test/e2e/run.mjs",
+    "e2e:browser": "node --env-file-if-exists=.env test/e2e/browser-mode.mjs",
     "icons": "node scripts/make-icons.mjs",
     "zip": "node scripts/build-zip.mjs",
     "mcp": "node mcp/server.mjs",

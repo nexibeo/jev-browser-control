@@ -30,7 +30,7 @@ await new Promise((r) => site.listen(0, '127.0.0.1', r));
 const SITE = `http://127.0.0.1:${site.address().port}`;
 
 // ---------- MCP server ----------
-const mcp = spawn(process.execPath, ['mcp/server.mjs'], { env: { ...process.env, JBC_PORT: String(PORT), JBC_HOME: mkdtempSync(join(tmpdir(), 'jbc-e2e-')), JBC_DEBUG: '1' }, stdio: ['pipe', 'pipe', 'pipe'] });
+const mcp = spawn(process.execPath, ['mcp/server.mjs'], { env: { ...process.env, JBC_MODE: 'extension', JBC_PORT: String(PORT), JBC_HOME: mkdtempSync(join(tmpdir(), 'jbc-e2e-')), JBC_DEBUG: '1' }, stdio: ['pipe', 'pipe', 'pipe'] });
 let buf = '', n = 0;
 const waiting = new Map();
 const progress = [];

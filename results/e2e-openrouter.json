@@ -1,57 +1,57 @@
 {
-  "date": "2026-09-19T15:56:46.597Z",
+  "date": "2026-09-22T08:09:49.858Z",
   "provider": "openrouter",
   "results": [
     {
       "name": "extension connects to the MCP bridge",
       "ok": true,
-      "ms": 24,
-      "note": "Extension: connected (v0.2.0, id gnnidfbejejocmhhmjneoghkdkjpkbac) · Jev provider: openrouter"
+      "ms": 70,
+      "note": "Extension: connected (v0.2.2, id gnnidfbejejocmhhmjneoghkdkjpkbac) · Jev provider: openrouter"
     },
     {
       "name": "navigate + snapshot lists elements, hides the password field, sees inside shadow DOM",
       "ok": true,
-      "ms": 121,
+      "ms": 126,
       "note": "14 elements"
     },
     {
       "name": "browser_type + browser_click + browser_select change the page",
       "ok": true,
-      "ms": 486
+      "ms": 465
     },
     {
       "name": "browser_read and browser_screenshot",
       "ok": true,
-      "ms": 22,
+      "ms": 28,
       "note": "screenshot 41 KB"
     },
     {
       "name": "jev_find locates an element by description",
       "ok": true,
-      "ms": 489,
-      "note": "Best match: [9] checkbox \"Mushroom\" (p=0.86, confidence 0.84)",
+      "ms": 922,
+      "note": "Best match: [9] checkbox \"Mushroom\" (p=0.88, confidence 0.86)",
       "cost": 0.000034
     },
     {
       "name": "jev_task fills the pizza form and stops before \"Place order\"",
       "ok": true,
-      "ms": 6131,
-      "note": "Steps: 7 actions, 8 Jev calls, 6.0 s, $0.00137 (typesafe/jev-1.13-20260917)",
-      "transcript": "Status: needs_confirmation\nJev wants to click \"Place order\", which may be irreversible. It was not clicked.\nPending: [13] \"Place order\" on http://127.0.0.1:59394/pizza.html. Ask the user; then call browser_click with ref 13, or rerun with allowIrreversible: true.\nSteps: 7 actions, 8 Jev calls, 6.0 s, $0.00137 (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Customer name\" ← \"Jeroen Erne\" (0.82)\n2. TYPE_TEXT \"Telephone\" ← \"+31 6 1234 5678\" (0.95)\n3. CLICK \"Large\" (0.97)\n4. CLICK \"Bacon\" (0.94)\n5. CLICK \"Extra cheese\" (0.94)\n6. SELECT \"Crust → Thin\" (1)\n7. TYPE_TEXT \"Preferred delivery time\" ← \"19:30\" (1)\n",
+      "ms": 11401,
+      "note": "Steps: 7 actions, 8 Jev calls, 11.3 s, $0.00137 (typesafe/jev-1.13-20260917)",
+      "transcript": "Status: needs_confirmation\nJev wants to click \"Place order\", which may be irreversible. It was not clicked.\nPending: [13] \"Place order\" on http://127.0.0.1:61172/pizza.html. Ask the user; then call browser_click with ref 13, or rerun with allowIrreversible: true.\nSteps: 7 actions, 8 Jev calls, 11.3 s, $0.00137 (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Customer name\" ← \"Jeroen Erne\" (0.84)\n2. TYPE_TEXT \"Telephone\" ← \"+31 6 1234 5678\" (0.95)\n3. CLICK \"Large\" (0.97)\n4. CLICK \"Bacon\" (0.94)\n5. CLICK \"Extra cheese\" (0.96)\n6. SELECT \"Crust → Thin\" (1)\n7. TYPE_TEXT \"Preferred delivery time\" ← \"19:30\" (1)\n",
       "progress": 15
     },
     {
       "name": "jev_task on Wikipedia: search and open an article",
       "ok": true,
-      "ms": 3790,
-      "note": "Steps: 2 actions, 4 Jev calls, 3.1 s, $0.00183 (typesafe/jev-1.13-20260917)",
-      "transcript": "Status: done\nSteps: 2 actions, 4 Jev calls, 3.1 s, $0.00183 (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Search Wikipedia\" ← \"Ristretto\" (1)\n2. CLICK \"Ristretto Short shot of espresso coffee\" (0.58)\n"
+      "ms": 7155,
+      "note": "Steps: 2 actions, 4 Jev calls, 4.8 s, $0.00189 (typesafe/jev-1.13-20260917)",
+      "transcript": "Status: done\nSteps: 2 actions, 4 Jev calls, 4.8 s, $0.00189 (typesafe/jev-1.13-20260917)\n1. TYPE_TEXT \"Search Wikipedia\" ← \"Ristretto\" (1)\n2. CLICK \"Ristretto Short shot of espresso coffee\" (0.63)\n"
     },
     {
       "name": "jev_check verifies a statement about the page",
       "ok": true,
-      "ms": 975,
-      "note": "yes 0.98, no 0.01"
+      "ms": 1021,
+      "note": "yes 0.97, no 0.01"
     }
   ]
 }

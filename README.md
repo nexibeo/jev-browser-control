@@ -1,6 +1,6 @@
 # Jev Browser Control
 
-Let Claude control your own Chrome. A Chrome extension plus a small MCP server: Claude plans, and [Jev](https://docs.typesafe.ai), TypeSafe's decision model, picks each click, keystroke and scroll in about half a second for a fraction of a cent.
+Let Claude control a real Chrome. An MCP server that opens and drives Chrome itself, or your everyday Chrome through an extension: Claude plans, and [Jev](https://docs.typesafe.ai), TypeSafe's decision model, picks each click, keystroke and scroll in about half a second for a fraction of a cent.
 
 Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com](https://nexibeo.com) · [completeaitraining.com](https://completeaitraining.com)), built together with Claude.
 
@@ -12,31 +12,38 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
 
 ## What you get
 
-- **A Chrome extension** that reads the page as numbered elements and acts on them with trusted input. Run tasks from its side panel, or let Claude drive it.
-- **An MCP server** for Claude Code and Claude Desktop with 17 tools: `browser_snapshot`, `browser_click`, `browser_type`, `browser_navigate`, `browser_read`, `browser_screenshot` and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`.
+- **An MCP server** for Claude Code, Codex and Claude Desktop. By default it opens its own Chrome window (browser mode) through Playwright and runs Jev's loop itself, with nothing else to install. Sign in to sites in that window once; the profile keeps the logins. It has 17 tools: `browser_snapshot`, `browser_click`, `browser_type`, `browser_navigate`, `browser_read`, `browser_screenshot` and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`.
+- **A Chrome extension** (extension mode) for driving your everyday Chrome, with your normal profile and open tabs. It reads the page the same way and acts with trusted input. Run tasks from its side panel, or let Claude drive it.
 - **Your choice of who pays for Jev:** your own OpenRouter key (free, this repo), prepaid credits from [jevbrowsercontrol.com](https://jevbrowsercontrol.com/dashboard) (one key, 5× OpenRouter's price), or any compatible endpoint such as TypeSafe direct.
 
 > **Two editions, one codebase.** This repo is the open-source edition: load `extension/` and use your own OpenRouter key, credits, or a custom endpoint. The download on jevbrowsercontrol.com is the service edition, built from the same code with `lib/edition.js` set to `service`: it runs on credits only. `npm run zip` builds both (`dist/` and `dist/oss/`).
 
 ## Quick start
 
+Browser mode needs Node.js 18+ and Google Chrome.
+
+1. **Install.** Clone this repo and run `node scripts/install-agents.mjs`. It installs the server's one dependency (playwright-core), registers the MCP server as `jev-browser` for Claude Code and Codex, adds the skill and subagent, and creates `~/.jev-browser-control/config.env`. Or register it by hand:
+
+   ```bash
+   claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz
+   ```
+
+2. **Add a key** to `~/.jev-browser-control/config.env`: `OPENROUTER_API_KEY=sk-or-v1-...` ([get one](https://openrouter.ai/settings/keys)), or `JBC_API_KEY=jbc_...` for [credits](https://jevbrowsercontrol.com/dashboard). The key stays out of Claude's and Codex's config.
+3. **Restart Claude Code** and ask: *“Use the browser to search Wikipedia for Ristretto and tell me where the name comes from.”* A Chrome window opens on first use. When a site needs a login, sign in there yourself; the logins are kept for the next session.
+
+Several Claude Code and Codex sessions share the one window. When the session that opened it ends, the next one takes over.
+
+### Extension mode: your everyday Chrome
+
 1. **Install the extension.** Clone this repo (or download the [zip](https://jevbrowsercontrol.com/downloads/jev-browser-control-extension.zip)), open `chrome://extensions`, switch on Developer mode, click **Load unpacked** and pick the `extension/` folder.
 2. **Choose a provider** in the settings page that opens: paste an [OpenRouter key](https://openrouter.ai/settings/keys) or a `jbc_` credits key, and press **Test connection**.
-3. **Connect Claude.** Needs Node.js 18+; no other dependencies.
+3. **Connect Claude** in extension mode:
 
    ```bash
-   claude mcp add jev-browser -- node /path/to/jev-browser-control/mcp/server.mjs
+   claude mcp add -s user -e JBC_MODE=extension jev-browser -- node /path/to/jev-browser-control/mcp/server.mjs
    ```
 
-   or without cloning:
-
-   ```bash
-   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.2.0.tgz
-   ```
-
-   Claude Desktop: add `{"mcpServers": {"jev-browser": {"command": "node", "args": ["/path/to/mcp/server.mjs"]}}}` to its config.
-
-Then ask Claude: *“Use the browser to search Wikipedia for Ristretto and tell me where the name comes from.”*
+   or `node scripts/install-agents.mjs --extension`. Claude Desktop: add `{"mcpServers": {"jev-browser": {"command": "node", "args": ["/path/to/mcp/server.mjs"], "env": {"JBC_MODE": "extension"}}}}` to its config.
 
 **Grok Bot, ChatGPT, claude.ai and other cloud apps.** They can't start a local program, so jevbrowsercontrol.com offers the same tools as a remote MCP server at `https://jevbrowsercontrol.com/mcp` (bearer: your `jbc_` key). Switch on **Remote AI apps** in the extension's settings and the extension keeps an outbound connection to the relay; it's off by default, and clicks that buy, pay, send, post or delete always wait for your OK in the side panel. For Grok Bot there is a ready-made template: [Jev Browser Operator](https://templatesgrokbot.com/bot/jev-browser-operator).
 
@@ -92,25 +99,37 @@ September 19, 2026, OpenRouter prices. Without `--session` (one bare call per st
 | Path | What |
 | --- | --- |
 | `extension/` | Manifest V3 extension: `background.js` (router), `lib/agent.js` (the loop), `lib/policy.js` (questions), `lib/page.js` (in-page snapshot and input), `lib/driver.js` (Chrome and CDP), `lib/provider.js` (OpenRouter / credits / custom), side panel and settings |
-| `mcp/` | Zero-dependency MCP server: stdio JSON-RPC, a small RFC 6455 WebSocket bridge on 127.0.0.1, and peer mode so several Claude sessions share one browser |
-| `test/` | Unit tests (policy, agent loop, bridge, MCP over stdio), `e2e/run.mjs` (real Chrome + extension + MCP + live Jev) and `e2e/remote.mjs` (the same through the jevbrowsercontrol.com relay) |
+| `mcp/` | MCP server: stdio JSON-RPC; browser mode in `lib/local-browser.mjs` (Playwright on the installed Chrome, running the loop from `lib/core/`, a copy of the extension's that `scripts/sync-core.mjs` keeps identical); extension mode through a small RFC 6455 WebSocket bridge on 127.0.0.1; peer mode so several sessions share one browser |
+| `test/` | Unit tests (policy, agent loop, provider, bridge, MCP over stdio, core copy in sync), `e2e/browser-mode.mjs` (the server's own Chrome + MCP + live Jev), `e2e/run.mjs` (Chrome + extension + MCP + live Jev) and `e2e/remote.mjs` (the same through the jevbrowsercontrol.com relay) |
 | `agents/` | A skill for Claude Code and Codex, and a Claude Code subagent |
 | `scripts/` | `install-agents.mjs` (set up Claude Code and Codex), `build-zip.mjs` (release zip and npm tarball), `record-run.mjs` (record a task with every decision), `make-icons.mjs` |
 
 ```bash
-npm install                 # playwright-core, only for e2e and icons
-npm test                    # 20 offline tests
-CHROME_PATH=... OPENROUTER_API_KEY=... npm run e2e    # live, about $0.005
-npm run zip                 # dist/ extension zip + MCP tarball
+npm install && npm install --prefix mcp   # playwright-core
+npm test                    # 25 offline tests
+OPENROUTER_API_KEY=... npm run e2e:browser            # browser mode, live, about $0.006
+CHROME_PATH=... OPENROUTER_API_KEY=... npm run e2e    # extension mode, live, about $0.005
+npm run zip                 # dist/ extension zips + MCP tarball
 ```
 
-`CHROME_PATH` must be Chromium or Chrome for Testing: branded Chrome 137+ ignores `--load-extension`.
+For `npm run e2e`, `CHROME_PATH` must be Chromium or Chrome for Testing: branded Chrome 137+ ignores `--load-extension`. Browser mode works with branded Chrome.
 
 ### MCP server settings
 
+In browser mode these can go in `~/.jev-browser-control/config.env` (one `KEY=value` per line); the environment wins.
+
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `JBC_PORT` | `10522` | Bridge port (set the same port in the extension) |
+| `JBC_MODE` | `browser` | `browser`: the server opens its own Chrome. `extension`: drive your Chrome through the extension |
+| `OPENROUTER_API_KEY` / `JBC_API_KEY` | none | Browser mode: pay for Jev with your OpenRouter key, or with jevbrowsercontrol.com credits |
+| `CHROME_PATH` | installed Chrome | Browser mode: a Chrome or Chromium binary; or `JBC_CHROME_CHANNEL` (`chrome`, `chrome-beta`, `msedge`) |
+| `JBC_PROFILE_DIR` | `~/.jev-browser-control/chrome-profile` | Browser mode: the profile, kept between sessions |
+| `JBC_HEADLESS` | `0` | Browser mode: `1` for no visible window |
+| `JBC_MAX_STEPS`, `JBC_MAX_SECONDS`, `JBC_MAX_COST_USD` | `30`, `120`, `0.10` | Browser mode: limits per `jev_task` (actions, seconds, dollars) |
+| `JBC_CONFIRM_IRREVERSIBLE` | `1` | Browser mode: `0` lets `jev_task` click buy/send/delete buttons without stopping |
+| `JBC_BLOCKED_SITES` | none | Browser mode: comma-separated domains the browser may not open or act on |
+| `JBC_JEV_MODEL`, `JBC_TEXT_MODEL` | `~typesafe/jev-latest`, `inception/mercury-2.5` | Browser mode: models |
+| `JBC_PORT` | `10523` browser, `10522` extension | Bridge port (in extension mode, set the same port in the extension) |
 | `JBC_EXTENSION_IDS` | any | Comma-separated extension IDs allowed to connect. The unpacked build's ID is `gnnidfbejejocmhhmjneoghkdkjpkbac` |
 | `JBC_HOME` | `~/.jev-browser-control` | Where the peer token for other sessions lives |
 | `JBC_DEBUG` | off | Log bridge events to stderr |
@@ -119,7 +138,7 @@ npm run zip                 # dist/ extension zip + MCP tarball
 
 - Remote control is off until you switch it on. While it's on, anyone with that `jbc_` key can reach your browser through the relay, so keep the key secret and revoke it in the dashboard if it leaks. Remote callers can never skip the confirmation for irreversible clicks.
 - The bridge listens on 127.0.0.1 only. Web pages can't connect (they can't forge a `chrome-extension://` origin); other MCP sessions need a token from your home folder.
-- The agent acts in your normal profile, with your logins. Use a separate Chrome profile for risky work, and list sites like your bank under **Blocked sites**.
+- Browser mode uses its own profile, so it only has the logins you make in its window. Extension mode acts in your normal profile, with all your logins: use a separate Chrome profile for risky work. In both, list sites like your bank as blocked sites.
 - Page text is sent to Jev as untrusted data, but prompt injection can still mislead a model. Keep limits on and check results; Jev can pick a confident near-miss between look-alike names.
 - Not supported yet: cross-origin iframes, canvas apps, file uploads, CAPTCHAs, and hover-only menus. English pages work best.
 

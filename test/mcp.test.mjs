@@ -10,7 +10,7 @@ const port = 20000 + Math.floor(Math.random() * 20000);
 const EXT = 'chrome-extension://' + 'c'.repeat(32);
 
 function startServer() {
-  const child = spawn(process.execPath, ['mcp/server.mjs'], { env: { ...process.env, JBC_PORT: String(port), JBC_HOME: mkdtempSync(join(tmpdir(), 'jbc-')) }, stdio: ['pipe', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, ['mcp/server.mjs'], { env: { ...process.env, JBC_MODE: 'extension', JBC_PORT: String(port), JBC_HOME: mkdtempSync(join(tmpdir(), 'jbc-')) }, stdio: ['pipe', 'pipe', 'pipe'] });
   let buf = '';
   const waiting = new Map();
   const notes = [];

@@ -1,7 +1,7 @@
 {
   "name": "jev-browser-control-mcp",
-  "version": "0.2.0",
-  "description": "MCP server that lets Claude control your Chrome through the Jev Browser Control extension. Jev, a fast decision model, handles multi-step browser work in about half a second per step.",
+  "version": "0.3.0",
+  "description": "MCP server that lets Claude and Codex drive a real Chrome, with Jev (a fast decision model) choosing each click. Opens its own Chrome through Playwright, or drives your everyday Chrome through the Jev Browser Control extension.",
   "type": "module",
   "bin": {
     "jev-browser-control-mcp": "server.mjs"
@@ -16,14 +16,15 @@
     "node": ">=18"
   },
   "keywords": [
-    "mcp",
-    "claude",
     "browser",
+    "browser-automation",
     "chrome",
+    "claude",
     "jev",
-    "typesafe",
+    "mcp",
     "openrouter",
-    "browser-automation"
+    "playwright",
+    "typesafe"
   ],
   "homepage": "https://jevbrowsercontrol.com",
   "repository": {
@@ -32,5 +33,8 @@
     "directory": "mcp"
   },
   "license": "MIT",
-  "author": "Jeroen Erne (https://www.linkedin.com/in/jeroenerne/)"
+  "author": "Jeroen Erne (https://www.linkedin.com/in/jeroenerne/)",
+  "dependencies": {
+    "playwright-core": "^1.63.0"
+  }
 }

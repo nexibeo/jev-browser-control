@@ -1,18 +1,25 @@
 ---
 name: jev-browser
-description: Control the user's own Chrome through the Jev Browser Control MCP tools (browser_* and jev_*). Use when a task needs the user's real browser, with their logins and open tabs - reading a page behind a login, filling in a web form, clicking through a web app, collecting information from several pages - or when the user asks to "use my browser" or "use Jev".
+description: Drive a real Chrome browser through the Jev Browser Control MCP tools (browser_* and jev_*). Use when a task needs a browser - reading a page behind a login, filling in a web form, clicking through a web app, collecting information from several pages - or when the user asks to "use the browser", "use my browser" or "use Jev".
 ---
 
 # Jev Browser Control
 
-These tools drive the user's own Chrome through the Jev Browser Control extension. Clicks and typing are real input, in the user's normal profile, with their accounts. Jev, TypeSafe's decision model, can run whole sub-tasks at about half a second and a fraction of a cent per step.
+These tools drive a real Chrome. Clicks and typing are real input. Jev, TypeSafe's decision model, can run whole sub-tasks at about half a second and a fraction of a cent per step.
+
+The server runs in one of two modes, and `browser_status` says which:
+
+- **Browser mode** (the default, "Browser: ready"): the MCP server opens and drives its own Chrome window, with its own profile at `~/.jev-browser-control/chrome-profile`. The user signs in to sites in that window once, and the logins are kept between sessions. No extension is involved.
+- **Extension mode** ("Extension: connected"): the tools drive the user's everyday Chrome through the Jev Browser Control extension, in their normal profile with their accounts and open tabs.
 
 ## Before the first action
 
-1. Call `browser_status`. It must say the extension is connected.
-   - Not connected: ask the user to open Chrome, click the orange Jev toolbar icon, and check that "Let Claude control this browser" is on in its settings. Install steps: https://jevbrowsercontrol.com/docs#install
-   - "NO API KEY SET": the `jev_*` tools will fail until the user adds an OpenRouter key or a credits key in the extension settings. The `browser_*` tools still work.
-2. Use the tab that `browser_status` reports as current, or open a new one with `browser_navigate` and `newTab: true` so the user's own tabs stay untouched.
+1. Call `browser_status`. The first call in browser mode opens the Chrome window, which takes a few seconds.
+   - "Chrome could not start" or a similar error: pass the message on. It says what to install or change.
+   - "Extension: not connected" (extension mode): ask the user to open Chrome, click the orange Jev toolbar icon, and check that "Let Claude control this browser" is on in its settings. Install steps: https://jevbrowsercontrol.com/docs#install
+   - "NO KEY SET" or "NO API KEY SET": the `jev_*` tools fail until the user adds a key. In browser mode it goes in `~/.jev-browser-control/config.env` (`OPENROUTER_API_KEY=...` or `JBC_API_KEY=jbc_...`); in extension mode, in the extension settings. The `browser_*` tools still work.
+2. In browser mode, use the current tab. In extension mode, open a new one with `browser_navigate` and `newTab: true` so the user's own tabs stay untouched.
+3. When a site needs a login, ask the user to sign in in the Chrome window, wait until they say they're done, then continue.
 
 ## Let Jev do the clicking
 

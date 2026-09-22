@@ -1,3 +1,4 @@
+// Copied from extension/lib by scripts/sync-core.mjs. Edit the original, then run the script.
 // Where Jev's decisions and the text helper's values come from.
 //   cloud      — Jev Browser Control credits: one jbc_ key, billed per call (no OpenRouter account needed)
 //   openrouter — your own OpenRouter key (free and open source; you pay OpenRouter directly)
