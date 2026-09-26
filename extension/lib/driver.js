@@ -145,6 +145,14 @@ export class ChromeDriver {
     return { clicked: p.label };
   }
 
+  // Move the pointer onto an element without clicking (hover menus, reaction pickers, tooltips).
+  async hover(ref) {
+    const p = await this.prepare(ref, { kind: 'hover' });
+    if (await this.useDebugger()) await this.cdp('Input.dispatchMouseEvent', { type: 'mouseMoved', x: p.x, y: p.y });
+    else await this.run('domHover', { ref });
+    return { hovered: p.label };
+  }
+
   async fill(ref, text, { guard } = {}) {
     const p = await this.prepare(ref, { kind: 'fill', guard });
     if (p.formatted) {

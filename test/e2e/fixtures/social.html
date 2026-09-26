@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Social test page</title>
+<style>
+body{font:16px system-ui;margin:24px;max-width:640px}
+.post{border:1px solid #ddd;border-radius:8px;padding:16px;margin-bottom:16px}
+.menu{position:relative;display:inline-block}
+.reactions{display:none;position:absolute;bottom:32px;left:0;background:#fff;border:1px solid #ccc;border-radius:20px;padding:4px 8px;gap:6px}
+.menu:hover .reactions,.menu.open .reactions{display:flex}
+</style></head>
+<body>
+<div class="post">
+  <p><b>Ada Lovelace</b> · A new analytical engine update is out.</p>
+  <div class="menu" id="menu">
+    <button id="like">Like</button>
+    <div class="reactions" role="menu">
+      <button role="menuitem" onclick="react('Insightful')">Insightful</button>
+      <button role="menuitem" onclick="react('Celebrate')">Celebrate</button>
+    </div>
+  </div>
+  <button onclick="copyLink()">Copy link to post</button>
+  <p id="state">No reaction</p>
+  <textarea id="box" aria-label="Add a comment" rows="2" cols="50"></textarea>
+  <button id="send" disabled>Comment</button>
+  <p id="posted"></p>
+</div>
+<script>
+// Like a real feed: the reaction picker opens on hover, and the Comment button is enabled a moment after typing.
+const menu = document.getElementById('menu');
+menu.addEventListener('mouseenter', () => menu.classList.add('open'));
+menu.addEventListener('mouseleave', () => setTimeout(() => menu.classList.remove('open'), 600));
+function react(r) { document.getElementById('state').textContent = 'Reacted: ' + r; }
+function copyLink() { navigator.clipboard.writeText(location.origin + '/post/42?utm=share'); }
+const box = document.getElementById('box'), send = document.getElementById('send');
+box.addEventListener('input', () => { setTimeout(() => { send.disabled = !box.value.trim(); }, 250); });
+send.addEventListener('click', () => { document.getElementById('posted').textContent = 'POSTED: ' + box.value; box.value = ''; send.disabled = true; });
+</script>
+</body></html>

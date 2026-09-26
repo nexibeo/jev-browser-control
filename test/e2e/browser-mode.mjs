@@ -5,7 +5,7 @@
 //   HEADED=1 to watch the window
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
-import { mkdtempSync, readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -97,12 +97,33 @@ try {
   const check = await a.tool('jev_check', { statement: 'This page is an encyclopedia article about a coffee drink.' });
   ok(Number(check.text.match(/true: ([\d.]+)/)?.[1]) > 0.7, 'jev_check', check.text.split('\n')[0]);
 
+  // Hover menus, "Copy link" menus, a button enabled a moment after typing, and a screen recording.
+  const rec = await a.tool('browser_record', { action: 'start', name: 'e2e' });
+  ok(/Recording the browser/.test(rec.text), 'browser_record starts');
+  const soc = await a.tool('browser_navigate', { url: `${SITE}/social.html` });
+  const sref = (re, text) => Number(text.split('\n').find((l) => re.test(l))?.match(/^\[(\d+)\]/)?.[1]);
+  ok(/button "Comment" \(disabled\)/.test(soc.text), 'disabled buttons are listed, marked disabled');
+  const typedC = await a.tool('browser_type', { ref: sref(/textbox "Add a comment"/, soc.text), text: 'Great update!' });
+  ok(/button "Comment" \(posts the typed text\)/.test(typedC.text), 'a button enabled just after typing shows up enabled, marked as posting');
+  const reply = await a.tool('jev_task', { goal: 'Post the comment that is typed in the comment box.', maxSteps: 3 });
+  ok(/Status: needs_confirmation/.test(reply.text) && !/POSTED/.test(reply.text), 'jev_task stops before posting a comment', reply.text.match(/Pending: [^\n]+/)?.[0]);
+  const hov = await a.tool('browser_hover', { ref: sref(/button "Like"/, soc.text) });
+  ok(/menuitem "Insightful"/.test(hov.text), 'browser_hover opens a hover menu');
+  const pick = await a.tool('browser_click', { ref: sref(/menuitem "Insightful"/, hov.text) });
+  ok(/Reacted: Insightful/.test(pick.text), 'a reaction picked from the hover menu');
+  await a.tool('browser_click', { ref: sref(/button "Copy link to post"/, soc.text) });
+  const clip = await a.tool('browser_clipboard');
+  ok(/Copied text: \S*\/post\/42\?utm=share/.test(clip.text), 'browser_clipboard returns the copied link', clip.text.split('\n')[0]);
+  const stop = await a.tool('browser_record', { action: 'stop' });
+  const mp4 = stop.text.match(/Recording saved: (\S+\.mp4)/)?.[1];
+  ok(!!mp4 && existsSync(mp4) && statSync(mp4).size > 5000, 'browser_record saves an MP4', stop.text.replace(/\n/g, ' · '));
+
   // A second Claude or Codex session shares the same browser instead of opening another.
   b = server();
   await b.rpc('initialize', { protocolVersion: '2025-06-18' });
   await new Promise((r) => setTimeout(r, 800));
   const st2 = await b.tool('browser_status');
-  ok(!st2.isError && /Ristretto/.test(st2.text), 'a second session joins the same browser', st2.text.split('\n')[2]);
+  ok(!st2.isError && /Social test page/.test(st2.text), 'a second session joins the same browser', st2.text.split('\n')[2]);
 
   // The first session ends: the second takes over and opens the browser again on the same profile.
   a.child.stdin.end();

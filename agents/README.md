@@ -24,7 +24,7 @@ It registers the MCP server for Claude Code (user scope) and Codex, and copies t
 **Claude Code**
 
 ```bash
-claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz
+claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
 mkdir -p ~/.claude/agents ~/.claude/skills
 cp agents/claude-code/jev-browser.md ~/.claude/agents/
 cp -R agents/skills/jev-browser ~/.claude/skills/
@@ -35,7 +35,7 @@ Then ask Claude to "use the jev-browser agent to …", or just describe a browse
 **Codex** (CLI or the Codex app)
 
 ```bash
-codex mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz
+codex mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
 mkdir -p ~/.codex/skills
 cp -R agents/skills/jev-browser ~/.codex/skills/
 ```
@@ -45,7 +45,7 @@ Or add it to `~/.codex/config.toml` yourself:
 ```toml
 [mcp_servers.jev-browser]
 command = "npx"
-args = ["-y", "https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz"]
+args = ["-y", "https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz"]
 startup_timeout_sec = 60
 ```
 

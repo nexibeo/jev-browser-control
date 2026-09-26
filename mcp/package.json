@@ -1,6 +1,6 @@
 {
   "name": "jev-browser-control-mcp",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "MCP server that lets Claude and Codex drive a real Chrome, with Jev (a fast decision model) choosing each click. Opens its own Chrome through Playwright, or drives your everyday Chrome through the Jev Browser Control extension.",
   "type": "module",
   "bin": {

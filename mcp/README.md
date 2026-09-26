@@ -3,10 +3,10 @@
 MCP server for [Jev Browser Control](https://jevbrowsercontrol.com): lets Claude Code, Codex, Claude Desktop and other MCP clients drive a real Chrome, with Jev (TypeSafe's decision model) choosing each click. Node.js 18+ and Google Chrome.
 
 ```bash
-claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz
+claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
 ```
 
-Put a key in `~/.jev-browser-control/config.env`:
+Pass your key when you add it (`-e JBC_API_KEY=jbc_...`, or `-e OPENROUTER_API_KEY=sk-or-v1-...`), or put it in `~/.jev-browser-control/config.env`:
 
 ```
 OPENROUTER_API_KEY=sk-or-v1-...
@@ -18,7 +18,7 @@ or `JBC_API_KEY=jbc_...` for jevbrowsercontrol.com credits. Then ask Claude to u
 
 **Extension mode** (`JBC_MODE=extension`). The server opens a bridge on `127.0.0.1:10522` for the Jev Browser Control extension and drives your everyday Chrome. Install the extension first: [jevbrowsercontrol.com/docs#install](https://jevbrowsercontrol.com/docs#install).
 
-Tools: `browser_status`, `browser_tabs`, `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_press_key`, `browser_scroll`, `browser_back`, `browser_wait`, `browser_read`, `browser_screenshot`, `jev_task`, `jev_find`, `jev_check`, `jev_stop`.
+Tools: `browser_status`, `browser_tabs`, `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_hover`, `browser_press_key`, `browser_scroll`, `browser_back`, `browser_wait`, `browser_read`, `browser_screenshot`, `browser_clipboard` and `browser_record` (browser mode only), `jev_task`, `jev_find`, `jev_check`, `jev_stop`.
 
 Settings (in `config.env` or the environment): `CHROME_PATH` or `JBC_CHROME_CHANNEL`, `JBC_HEADLESS=1`, `JBC_PROFILE_DIR`, `JBC_MAX_STEPS`, `JBC_MAX_SECONDS`, `JBC_MAX_COST_USD`, `JBC_CONFIRM_IRREVERSIBLE=0`, `JBC_BLOCKED_SITES`, `JBC_JEV_MODEL`, `JBC_TEXT_MODEL`, `JBC_PORT`, `JBC_HOME`, `JBC_DEBUG=1`. Extension mode also takes `JBC_EXTENSION_IDS` (allowlist).
 

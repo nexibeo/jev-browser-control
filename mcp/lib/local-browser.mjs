@@ -3,13 +3,33 @@
 // so a login you do once in that window stays. Jev's loop and the page code are the same files
 // the extension uses (lib/core, copied from extension/lib).
 import { mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { pageOp } from './core/page.js';
 import { runTask, findElement, checkPage, StaleError, fingerprint } from './core/agent.js';
 import { makeProvider } from './core/provider.js';
-import { keySet, isBlocked, loadConfig } from './config.mjs';
+import { keySet, isBlocked, loadConfig, HOME } from './config.mjs';
+import { Recorder } from './recorder.mjs';
 
 const PAGE_OP = pageOp.toString();
+
+// Remembers the text a page copies ("Copy link" menus), so browser_clipboard can return it
+// without reading the system clipboard, which needs focus and permission.
+const CLIPBOARD_HOOK = `(() => {
+  if (window.__jbcClipHooked) return;
+  window.__jbcClipHooked = true;
+  const set = (t) => { if (t != null && String(t)) window.__jbcClip = { text: String(t), at: Date.now() }; };
+  const c = navigator.clipboard;
+  if (c && c.writeText) { const w = c.writeText.bind(c); c.writeText = (t) => { set(t); return w(t).catch(() => {}); }; }
+  if (c && c.write) {
+    const w = c.write.bind(c);
+    c.write = async (items) => {
+      try { for (const it of items) if (it.types.includes('text/plain')) set(await (await it.getType('text/plain')).text()); } catch {}
+      return w(items).catch(() => {});
+    };
+  }
+  window.addEventListener('copy', (e) => { set((e.clipboardData && e.clipboardData.getData('text/plain')) || String(getSelection() || '')); });
+})();`;
 const IS_MAC = process.platform === 'darwin';
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -40,11 +60,11 @@ export class PlaywrightDriver {
     await this.page.waitForLoadState('domcontentloaded', { timeout }).catch(() => {});
   }
 
-  async observe({ viewportOnly = true, max = 240, textChars = 6000 } = {}) {
+  async observe({ viewportOnly = true, max = 240, textChars = 6000, includeDisabled = false } = {}) {
     await this.waitForLoad(5000);
     // A task can click its way onto a blocked site; stop there before reading or acting on it.
     if (isBlocked(this.browser.config.settings, this.page.url())) throw new Error(`${new URL(this.page.url()).hostname} is on the blocked list (JBC_BLOCKED_SITES).`);
-    const page = await this.run('observe', { viewportOnly, max, textChars });
+    const page = await this.run('observe', { viewportOnly, max, textChars, includeDisabled });
     page.tabId = this.tabId;
     page.fingerprint = fingerprint(page);
     return page;
@@ -74,6 +94,13 @@ export class PlaywrightDriver {
     const p = await this.prepare(ref, { kind: 'click', guard, key, strict });
     await this.withNewTab(() => this.page.mouse.click(p.x, p.y));
     return { clicked: p.label };
+  }
+
+  // Move the pointer onto an element without clicking (hover menus, reaction pickers, tooltips).
+  async hover(ref) {
+    const p = await this.prepare(ref, { kind: 'hover' });
+    await this.page.mouse.move(p.x, p.y, { steps: 5 });
+    return { hovered: p.label };
   }
 
   async fill(ref, text, { guard } = {}) {
@@ -186,6 +213,7 @@ export class LocalBrowser {
       if (/distribution .* is not found|Executable doesn't exist/i.test(msg)) throw new Error('Google Chrome was not found. Install it, or set CHROME_PATH in ~/.jev-browser-control/config.env to a Chrome or Chromium binary.');
       throw err;
     }
+    await context.addInitScript(CLIPBOARD_HOOK).catch(() => {});
     this.context = context;
     context.on('close', () => { if (this.context === context) { this.context = null; this.current = null; } });
     context.on('page', (p) => this.idOf(p));
@@ -230,7 +258,7 @@ export class LocalBrowser {
   }
 
   async brief(driver) {
-    return { tabId: driver.tabId, page: await driver.observe({ viewportOnly: true, max: 80, textChars: 1500 }) };
+    return { tabId: driver.tabId, page: await driver.observe({ viewportOnly: true, max: 80, textChars: 1500, includeDisabled: true }) };
   }
 
   describe() {
@@ -285,7 +313,7 @@ export class LocalBrowser {
       }
       case 'snapshot': {
         const d = await this.driver(params);
-        return { tabId: d.tabId, page: await d.observe({ viewportOnly: !params.full, max: params.full ? 500 : 240, textChars: params.full ? 12000 : 6000 }) };
+        return { tabId: d.tabId, page: await d.observe({ viewportOnly: !params.full, max: params.full ? 500 : 240, textChars: params.full ? 12000 : 6000, includeDisabled: true }) };
       }
       case 'click': {
         const d = await this.driver(params);
@@ -293,11 +321,30 @@ export class LocalBrowser {
         await d.settle({ kind: 'click', ref: Number(params.ref) });
         return { ...r, ...(await this.brief(d)) };
       }
+      case 'hover': {
+        const d = await this.driver(params);
+        const r = await d.hover(Number(params.ref));
+        await sleep(300);
+        return { ...r, ...(await this.brief(d)) };
+      }
+      case 'clipboard': {
+        const page = await this.page(params.tabId);
+        const clip = await page.evaluate(() => window.__jbcClip || null).catch(() => null);
+        return { tabId: this.idOf(page), url: page.url(), text: clip?.text ?? null, copied_at: clip ? new Date(clip.at).toISOString() : null };
+      }
+      case 'record': {
+        await this.ensure();
+        this.recorder ||= new Recorder(this, join(HOME, 'recordings'));
+        if (params.action === 'stop') return this.recorder.stop();
+        await this.page();
+        return this.recorder.start({ name: params.name });
+      }
       case 'type': {
         const d = await this.driver(params);
         const r = await d.fill(Number(params.ref), String(params.text ?? ''));
         await d.settle({ kind: 'fill', ref: Number(params.ref) });
         if (params.submit) { await d.pressKey('Enter'); await d.settle({ kind: 'enter' }); }
+        else await sleep(350); // many editors enable their Send/Comment button a moment after typing
         return { ...r, ...(await this.brief(d)) };
       }
       case 'select': {
@@ -385,6 +432,7 @@ export class LocalBrowser {
   }
 
   async close() {
+    if (this.recorder?.active) await this.recorder.stop().catch(() => {});
     const c = this.context;
     this.context = null;
     await c?.close().catch(() => {});

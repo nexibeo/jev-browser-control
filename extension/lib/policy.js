@@ -201,5 +201,5 @@ export function isIrreversible(target) {
   if (!target) return false;
   const el = target.element || {};
   const text = [target.label, el.label, el.value && el.role === 'button' ? el.value : ''].filter(Boolean).join(' ');
-  return (target.kind === 'click' || target.kind === 'enter') && IRREVERSIBLE.test(text);
+  return (target.kind === 'click' || target.kind === 'enter') && (IRREVERSIBLE.test(text) || !!el.publishes);
 }

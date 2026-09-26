@@ -121,6 +121,18 @@ export function pageOp(op, arg = {}) {
       e.readOnly ?? null, e.matches(':disabled'), e.getAttribute('aria-disabled'), e.getAttribute('aria-expanded'),
       e.getAttribute('aria-checked'), e.getAttribute('aria-selected'), e.getAttribute('href'), scope?.innerText?.slice(0, 6000) || '']));
   };
+  // A short "Comment" / "Reply" / "Send" / "Post" button next to a text box that holds text publishes
+  // that text, even though the word alone ("Comment") also names the button that just opens the box.
+  const PUBLISH = /^(comment|reply|respond|send|post|share|publish|tweet)$/i;
+  const publishes = (e) => {
+    if (!PUBLISH.test(clean(name(e), 40))) return false;
+    for (let up = e.parentElement, i = 0; up && i < 6; up = up.parentElement, i++) {
+      for (const f of up.querySelectorAll('textarea,[contenteditable="true"],[contenteditable=""],input[type="text"],input:not([type])')) {
+        if ((f.isContentEditable ? f.innerText : f.value)?.trim()) return true;
+      }
+    }
+    return false;
+  };
   // The text of the enclosing card or row helps judge a bare link title ("Read more", a product name).
   const context = (e, label) => {
     let best = '';
@@ -156,11 +168,14 @@ export function pageOp(op, arg = {}) {
 
   if (op === 'observe') {
     if (!document.body) return null;
-    const { viewportOnly = true, max = 240, textChars = 6000, contexts = true } = arg;
+    // includeDisabled: list disabled controls too (marked disabled) for Claude's snapshots. Jev's loop
+    // leaves it off, so it is never offered a button it can't press.
+    const { viewportOnly = true, max = 240, textChars = 6000, contexts = true, includeDisabled = false } = arg;
     const elements = [];
     let omitted = 0;
     for (const e of deepAll(SELECTOR)) {
-      if (!safe(e) || !visible(e) || e.matches(':disabled') || e.closest('[aria-disabled="true"]')) continue;
+      const disabled = e.matches(':disabled') || !!e.closest('[aria-disabled="true"]');
+      if (!safe(e) || !visible(e) || (disabled && !includeDisabled)) continue;
       const r = e.getBoundingClientRect(), x = r.x + r.width / 2, y = r.y + r.height / 2, rname = role(e);
       if (!rname || r.width <= 0 || r.height <= 0) continue;
       const inView = x >= 0 && y >= 0 && x < innerWidth && y < innerHeight;
@@ -169,6 +184,7 @@ export function pageOp(op, arg = {}) {
       if (elements.length >= max) { omitted++; continue; }
       const label = clean(name(e), 120) || rname;
       const el = { ref: identity(e), role: rname, label, inView };
+      if (disabled) el.disabled = true;
       const value = valueOf(e, rname);
       if (value && value !== label) el.value = clean(value, 200);
       for (const key of ['checked', 'selected', 'expanded']) {
@@ -191,6 +207,7 @@ export function pageOp(op, arg = {}) {
         const c = context(e, label);
         if (c) el.context = c;
       }
+      if (rname === 'button' && publishes(e)) el.publishes = true;
       el.guard = guard(e);
       elements.push(el);
     }
@@ -241,7 +258,7 @@ export function pageOp(op, arg = {}) {
     if (hit && !composedContains(e, hit) && !composedContains(hit, e)) {
       return { error: 'covered', reason: `covered by ${hit.tagName.toLowerCase()} "${clean(name(hit) || hit.innerText, 40)}"` };
     }
-    return { x, y, role: role(e), label: clean(name(e), 120), tag: e.tagName, editable: editable(e, role(e)), contentEditable: e.isContentEditable, formatted: FORMATTED.includes(inputType(e)) };
+    return { x, y, role: role(e), label: clean(name(e), 120), tag: e.tagName, editable: editable(e, role(e)), contentEditable: e.isContentEditable, formatted: FORMATTED.includes(inputType(e)), publishes: publishes(e) };
   }
 
   if (op === 'select') {
@@ -301,20 +318,38 @@ export function pageOp(op, arg = {}) {
   if (op === 'settle') {
     const field = arg.ref && J.nodes.get(arg.ref);
     const autocomplete = arg.kind === 'fill' && (field?.getAttribute('role') === 'combobox' || field?.getAttribute('aria-autocomplete') || field?.getAttribute('list'));
+    // After typing, many editors enable their Send/Comment button a moment later: wait until the DOM
+    // has been quiet for 150 ms (at most 800 ms) so the next snapshot shows it.
+    const quiet = arg.kind === 'fill' ? 150 : 0;
     return new Promise((resolve) => {
-      let frames = 0, stopped = false;
-      const finish = () => { stopped = true; resolve(true); };
-      setTimeout(finish, autocomplete ? 200 : 50);
+      let frames = 0, stopped = false, last = performance.now();
+      const mo = quiet ? new MutationObserver(() => { last = performance.now(); }) : null;
+      mo?.observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+      const finish = () => { if (stopped) return; stopped = true; mo?.disconnect(); resolve(true); };
+      setTimeout(finish, quiet ? 800 : autocomplete ? 200 : 50);
       const ready = () => {
         if (stopped) return;
         const ids = (field?.getAttribute('aria-controls') || field?.getAttribute('aria-owns') || '').split(/\s+/).filter(Boolean);
         const roots = ids.length ? ids.map((id) => document.getElementById(id)).filter(Boolean) : [document];
         const options = roots.flatMap((root) => [...root.querySelectorAll('[role="option"]')]);
-        if (++frames >= 2 && (!autocomplete || options.some((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && r.bottom > 0 && r.top < innerHeight && visible(e); }))) finish();
+        const listed = !autocomplete || options.some((e) => { const r = e.getBoundingClientRect(); return r.width && r.height && r.bottom > 0 && r.top < innerHeight && visible(e); });
+        if (++frames >= 2 && listed && performance.now() - last >= quiet) finish();
         else requestAnimationFrame(ready);
       };
       requestAnimationFrame(ready);
     });
+  }
+
+  // Hover without a debugger (extension fallback): the events a real pointer sends on entering.
+  if (op === 'domHover') {
+    const node = J.nodes.get(arg.ref);
+    if (!node?.isConnected) return { error: 'stale', reason: 'The element is gone.' };
+    const r = node.getBoundingClientRect(), init = { bubbles: true, composed: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2, view: window };
+    for (const type of ['pointerover', 'pointerenter', 'mouseover', 'mouseenter', 'pointermove', 'mousemove']) {
+      const E = type.startsWith('pointer') ? PointerEvent : MouseEvent;
+      node.dispatchEvent(new E(type, { ...init, bubbles: !type.endsWith('enter') }));
+    }
+    return { hovered: true };
   }
 
   if (op === 'fingerprint') return pageKey() + ':' + hash(viewportText(3000));

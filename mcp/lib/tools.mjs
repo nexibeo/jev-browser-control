@@ -131,6 +131,38 @@ export const TOOLS = [
     method: 'screenshot',
   },
   {
+    name: 'browser_hover',
+    title: 'Hover over an element',
+    description: 'Move the mouse onto element [ref] without clicking, to open menus that appear on hover (reaction pickers, navigation menus, tooltips). Returns the updated visible elements, including what the hover revealed.',
+    inputSchema: { type: 'object', properties: { ref, tabId }, required: ['ref'], additionalProperties: false },
+    annotations: { readOnlyHint: false, destructiveHint: false },
+    method: 'hover',
+  },
+  {
+    name: 'browser_clipboard',
+    title: 'Read what the page copied',
+    description: 'The text the page last copied, for example after a "Copy link" menu item. Only text copied on the current page since it loaded.',
+    inputSchema: { type: 'object', properties: { tabId }, additionalProperties: false },
+    annotations: { readOnlyHint: true },
+    method: 'clipboard',
+    browserOnly: true,
+  },
+  {
+    name: 'browser_record',
+    title: 'Record the browser screen',
+    description: 'Start or stop a screen recording of the browser (the current tab, following tab switches). stop saves an MP4 on this computer and returns its path.',
+    inputSchema: {
+      type: 'object',
+      properties: { action: { type: 'string', enum: ['start', 'stop'] }, name: { type: 'string', description: 'Optional name for the file (start only).' } },
+      required: ['action'],
+      additionalProperties: false,
+    },
+    annotations: { readOnlyHint: true },
+    method: 'record',
+    browserOnly: true,
+    timeoutMs: 180_000,
+  },
+  {
     name: 'jev_task',
     title: 'Hand a browser task to Jev',
     description:
@@ -208,6 +240,8 @@ export function formatPage(page, { tabId: tab, heading } = {}) {
     if (e.checked !== undefined) s += e.checked === 'true' ? ' (checked)' : ' (not checked)';
     if (e.expanded !== undefined) s += e.expanded === 'true' ? ' (expanded)' : ' (collapsed)';
     if (e.selected === 'true') s += ' (selected)';
+    if (e.disabled) s += ' (disabled)';
+    if (e.publishes) s += ' (posts the typed text)';
     if (e.href) s += ` → ${e.href}`;
     if (e.context) s += ` — ${e.context}`;
     if (e.inView === false) s += ' (below/above the screen)';
@@ -280,6 +314,17 @@ export function formatResult(tool, result) {
       return formatPage(result.page, { tabId: result.tabId, heading: `Typed ${q(result.typed)} into ${q(result.into)}.\n` });
     case 'browser_select':
       return formatPage(result.page, { tabId: result.tabId, heading: `Selected ${q(result.selected)}.\n` });
+    case 'browser_hover':
+      return formatPage(result.page, { tabId: result.tabId, heading: `Hovering over ${q(result.hovered)}.\n` });
+    case 'browser_clipboard':
+      return result.text == null
+        ? `Nothing was copied on this page yet (${result.url}). Click the page's copy button or menu item first.`
+        : `Copied text: ${result.text}\n(copied ${result.copied_at} on ${result.url})`;
+    case 'browser_record':
+      if (result.recording) return `Recording the browser. Call browser_record with action "stop" to save it.\nFolder: ${result.dir}`;
+      return result.saved
+        ? `Recording saved: ${result.saved}\n${result.seconds} s, ${result.frames} frames.`
+        : `Recording stopped without a video: ${result.note}\nFolder: ${result.dir}`;
     case 'browser_press_key':
       return formatPage(result.page, { tabId: result.tabId, heading: `Pressed ${result.pressed}.\n` });
     case 'browser_wait':

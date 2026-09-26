@@ -74,7 +74,7 @@ function checkUrl(url, settings) {
 }
 
 async function brief(driver) {
-  const page = await driver.observe({ viewportOnly: true, max: 80, textChars: 1500 });
+  const page = await driver.observe({ viewportOnly: true, max: 80, textChars: 1500, includeDisabled: true });
   return { tabId: driver.tabId, page };
 }
 
@@ -191,7 +191,7 @@ const handlers = {
     const settings = await loadSettings();
     const driver = await driverFor(params, settings);
     await rememberTab(driver.tabId);
-    const page = await driver.observe({ viewportOnly: !params.full, max: params.full ? 500 : 240, textChars: params.full ? 12000 : 6000 });
+    const page = await driver.observe({ viewportOnly: !params.full, max: params.full ? 500 : 240, textChars: params.full ? 12000 : 6000, includeDisabled: true });
     return { tabId: driver.tabId, page };
   },
 
@@ -200,7 +200,7 @@ const handlers = {
     const driver = await driverFor(params, settings);
     if (ctx.source === 'remote' && settings.confirmIrreversible !== false) {
       const p = await driver.run('prepare', { ref: Number(params.ref), kind: 'click' });
-      if (p?.label && IRREVERSIBLE.test(p.label)) {
+      if (p?.label && (IRREVERSIBLE.test(p.label) || p.publishes)) {
         const tab = await chrome.tabs.get(driver.tabId);
         const ok = await askPanel({ label: p.label, url: tab.url, source: 'remote' });
         if (!ok) throw new Error(`Clicking "${p.label}" needs the user's OK. Ask them to open the Jev side panel in Chrome and approve it, or to click it themselves.`);
@@ -211,12 +211,29 @@ const handlers = {
     return { ...r, ...(await brief(driver)) };
   },
 
+  async hover(params) {
+    const settings = await loadSettings();
+    const driver = await driverFor(params, settings);
+    const r = await driver.hover(Number(params.ref));
+    await driver.wait(250);
+    return { ...r, ...(await brief(driver)) };
+  },
+
+  async clipboard() {
+    throw new Error('browser_clipboard works when the MCP server runs its own Chrome (browser mode), not through the extension.');
+  },
+
+  async record() {
+    throw new Error('browser_record works when the MCP server runs its own Chrome (browser mode), not through the extension.');
+  },
+
   async type(params) {
     const settings = await loadSettings();
     const driver = await driverFor(params, settings);
     const r = await driver.fill(Number(params.ref), String(params.text ?? ''));
     await driver.settle({ kind: 'fill', ref: Number(params.ref) });
     if (params.submit) { await driver.pressKey('Enter', Number(params.ref)); await driver.settle({ kind: 'enter' }); }
+    else await driver.wait(350); // many editors enable their Send/Comment button a moment after typing
     return { ...r, ...(await brief(driver)) };
   },
 

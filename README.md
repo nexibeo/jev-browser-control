@@ -1,6 +1,6 @@
 # Jev Browser Control
 
-Let Claude control a real Chrome. An MCP server that opens and drives Chrome itself, or your everyday Chrome through an extension: Claude plans, and [Jev](https://docs.typesafe.ai), TypeSafe's decision model, picks each click, keystroke and scroll in about half a second for a fraction of a cent.
+Let Claude or Codex drive a real Chrome. You ask in plain words; Claude plans, and [Jev](https://docs.typesafe.ai), TypeSafe's decision model, picks each click, keystroke and scroll in about half a second for a fraction of a cent.
 
 Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com](https://nexibeo.com) · [completeaitraining.com](https://completeaitraining.com)), built together with Claude.
 
@@ -8,32 +8,53 @@ Created by [Jeroen Erne](https://www.linkedin.com/in/jeroenerne/) ([nexibeo.com]
 
 **Website:** [jevbrowsercontrol.com](https://jevbrowsercontrol.com) · **Docs:** [jevbrowsercontrol.com/docs](https://jevbrowsercontrol.com/docs) · **License:** MIT
 
-<img src="docs/img/sidepanel.png" alt="The Jev side panel in Chrome, showing Claude connected" width="320">
+## What you can ask
+
+Five everyday tasks, run live in Claude Code on September 26, 2026:
+
+| You ask Claude | What happens | Jev |
+| --- | --- | --- |
+| *Search Google for the Rijksmuseum opening hours* | Jev types the search; Claude reads you the answer (every day, 9:00 to 17:00) | 2 actions · 9.9 s · $0.0033 |
+| *Research where the name "ristretto" comes from, on Wikipedia* | Jev searches Wikipedia and opens the article; Claude reads it and explains | 2 actions · 3.9 s · $0.0049 |
+| *Draft a reply to the latest post on the TypeSafe LinkedIn page. Show me before you post.* | Jev opens the comment box and types the reply. Nothing is posted until you say so | 2 actions · 3.1 s · $0.0071 |
+| *Get the transcript of my YouTube video "Future of Work" and summarise it* | Jev opens "Show transcript"; Claude reads the whole transcript and summarises it | 3 actions · 3.3 s · $0.0044 |
+| *Order a large pizza with bacon for 19:30 on the test form. Stop before you submit.* | Jev fills in eight fields and stops before "Submit order" | 8 actions · 11.2 s · $0.0070 |
+
+Costs are at the jevbrowsercontrol.com credits price (5× OpenRouter's); with your own OpenRouter key they are a fifth of that. Clicks that buy, pay, send, post or delete, and a Comment or Reply button that would publish what was typed, always stop and wait for your OK.
+
+## Install
+
+Needs Node.js 18+ and Google Chrome. Nothing to install in the browser: the MCP server opens its own Chrome window.
+
+1. **Get a key.** Create one in the [dashboard](https://jevbrowsercontrol.com/dashboard) (prepaid credits, from $10), or use your own [OpenRouter key](https://openrouter.ai/settings/keys).
+2. **Add the MCP server with your key.** Claude Code:
+
+   ```bash
+   claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
+   ```
+
+   Codex:
+
+   ```bash
+   codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
+   ```
+
+   With your own OpenRouter key, use `OPENROUTER_API_KEY=sk-or-v1-...` instead. To keep the key out of Claude's and Codex's config, leave out `-e`/`--env` and put the same line in `~/.jev-browser-control/config.env`.
+3. **Restart Claude Code or Codex and ask.** A Chrome window opens on first use. When a site needs a login, sign in there yourself once; the window has its own profile (`~/.jev-browser-control/chrome-profile`) and keeps the logins.
+
+From a clone, `node scripts/install-agents.mjs` does all of this for Claude Code and Codex at once, and also installs a skill and a Claude Code subagent that know how to use the tools. Several Claude Code and Codex sessions share the one window; when the session that opened it ends, the next one takes over.
 
 ## What you get
 
-- **An MCP server** for Claude Code, Codex and Claude Desktop. By default it opens its own Chrome window (browser mode) through Playwright and runs Jev's loop itself, with nothing else to install. Sign in to sites in that window once; the profile keeps the logins. It has 17 tools: `browser_snapshot`, `browser_click`, `browser_type`, `browser_navigate`, `browser_read`, `browser_screenshot` and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`.
+- **An MCP server** for Claude Code, Codex and Claude Desktop, with 20 tools: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_hover` (menus that open on hover, like reaction pickers), `browser_read`, `browser_screenshot`, `browser_clipboard` (what a "Copy link" menu copied), `browser_record` (a screen recording of the browser, saved as MP4) and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`. By default it drives its own Chrome window through Playwright (browser mode).
 - **A Chrome extension** (extension mode) for driving your everyday Chrome, with your normal profile and open tabs. It reads the page the same way and acts with trusted input. Run tasks from its side panel, or let Claude drive it.
 - **Your choice of who pays for Jev:** your own OpenRouter key (free, this repo), prepaid credits from [jevbrowsercontrol.com](https://jevbrowsercontrol.com/dashboard) (one key, 5× OpenRouter's price), or any compatible endpoint such as TypeSafe direct.
 
 > **Two editions, one codebase.** This repo is the open-source edition: load `extension/` and use your own OpenRouter key, credits, or a custom endpoint. The download on jevbrowsercontrol.com is the service edition, built from the same code with `lib/edition.js` set to `service`: it runs on credits only. `npm run zip` builds both (`dist/` and `dist/oss/`).
 
-## Quick start
-
-Browser mode needs Node.js 18+ and Google Chrome.
-
-1. **Install.** Clone this repo and run `node scripts/install-agents.mjs`. It installs the server's one dependency (playwright-core), registers the MCP server as `jev-browser` for Claude Code and Codex, adds the skill and subagent, and creates `~/.jev-browser-control/config.env`. Or register it by hand:
-
-   ```bash
-   claude mcp add -s user jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.3.0.tgz
-   ```
-
-2. **Add a key** to `~/.jev-browser-control/config.env`: `OPENROUTER_API_KEY=sk-or-v1-...` ([get one](https://openrouter.ai/settings/keys)), or `JBC_API_KEY=jbc_...` for [credits](https://jevbrowsercontrol.com/dashboard). The key stays out of Claude's and Codex's config.
-3. **Restart Claude Code** and ask: *“Use the browser to search Wikipedia for Ristretto and tell me where the name comes from.”* A Chrome window opens on first use. When a site needs a login, sign in there yourself; the logins are kept for the next session.
-
-Several Claude Code and Codex sessions share the one window. When the session that opened it ends, the next one takes over.
-
 ### Extension mode: your everyday Chrome
+
+<img src="docs/img/sidepanel.png" alt="The Jev side panel in Chrome, showing Claude connected" width="320">
 
 1. **Install the extension.** Clone this repo (or download the [zip](https://jevbrowsercontrol.com/downloads/jev-browser-control-extension.zip)), open `chrome://extensions`, switch on Developer mode, click **Load unpacked** and pick the `extension/` folder.
 2. **Choose a provider** in the settings page that opens: paste an [OpenRouter key](https://openrouter.ai/settings/keys) or a `jbc_` credits key, and press **Test connection**.
@@ -58,7 +79,7 @@ page ──► numbered elements ──► one Jev call ──► stop gates ─
 
 1. **Snapshot.** Visible buttons, links and fields become rows `[n] role "label" value`, with checked/selected state and nearby card text. Password and file fields are never listed. Open shadow roots are included.
 2. **One request, three answers.** Jev is asked for the operation (`CLICK`, `TYPE_TEXT`, `SELECT`, `PRESS_ENTER`, `SCROLL_*`, `BACK`, `WAIT`, `DONE`, `BLOCKED`), speculatively for the best target of *every* operation, and, independently, whether the goal is already met. Code uses only the target that matches the chosen operation.
-3. **Stop gates in code.** `DONE` counts only when the independent goal check agrees; clicks that buy, pay, send, post or delete stop for confirmation; three actions without a visible change end the run; limits on actions, seconds and dollars.
+3. **Stop gates in code.** `DONE` counts only when the independent goal check agrees; clicks that buy, pay, send, post or delete stop for confirmation, and so does a Comment, Reply or Send button next to a text box that holds text (it would publish it); three actions without a visible change end the run; limits on actions, seconds and dollars.
 4. **Act.** Before input, the element is re-checked (same node, same state, visible, not covered). If the page moved while Jev decided, nothing is clicked and it looks again. Only `TYPE_TEXT` needs words: a small LLM writes them from the goal and never invents personal data (it returns `null`, and the task stops with `needs_input`).
 
 Jev's answer is always an element number that code maps back to a node it tagged itself. It never becomes a selector, coordinates or code.

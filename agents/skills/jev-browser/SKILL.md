@@ -37,6 +37,9 @@ Clicking through pages doesn't need you. In a measured comparison on the same ta
 | Check a result cheaply ("the cart has 2 items") | `jev_check`, which returns a probability |
 | Layout, images, charts, anything visual | `browser_screenshot` |
 | Something is loading | `browser_wait` with the text you expect |
+| A menu that only opens on hover (reaction picker, navigation menu) | `browser_hover` on the element, then click the item it reveals |
+| The link a "Copy link" menu item copied | click it, then `browser_clipboard` (browser mode) |
+| The user wants a recording of what happened | `browser_record` with `start` before and `stop` after; stop returns the MP4 path (browser mode) |
 
 Refs are the `[n]` numbers from the latest snapshot. After a page changes, take a new snapshot before using old refs.
 
@@ -54,7 +57,7 @@ Refs are the `[n]` numbers from the latest snapshot. After a page changes, take 
 | `done` | Verify the final page (its text is included, or use `jev_check` / `browser_snapshot`) before telling the user it worked. Jev can be confidently wrong between look-alike names. |
 | `done_unconfirmed` | Jev's own goal check disagreed. Inspect the page and finish by hand if needed. |
 | `needs_input` | Ask the user for the missing value, then run again with it in `details`. |
-| `needs_confirmation` | The next click may buy, pay, send, post or delete. Ask the user. Only after a clear yes, click the pending ref with `browser_click`, or rerun with `allowIrreversible: true`. |
+| `needs_confirmation` | The next click may buy, pay, send, post or delete (including a Comment or Reply button that would publish what was typed). Ask the user. Only after a clear yes, click the pending ref with `browser_click`, or rerun with `allowIrreversible: true`. |
 | `blocked`, `stuck`, `budget` | Take a snapshot, work out what's in the way (a login, a cookie banner, a captcha), and either act yourself or explain it to the user. |
 
 ## Rules

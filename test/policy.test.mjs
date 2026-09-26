@@ -73,6 +73,9 @@ test('irreversible clicks are recognised, ordinary ones are not', () => {
   for (const l of ['Place order', 'Buy now', 'Pay €12.00', 'Delete account', 'Send', 'Confirm booking', 'Publish']) assert.ok(isIrreversible(t(l)), l);
   for (const l of ['Posts', 'Search', 'Next', 'Add filter', 'Sender name', 'PayPal info', 'Open Title']) assert.ok(!isIrreversible(t(l)), l);
   assert.ok(!isIrreversible(t('Buy now', 'fill')));
+  // "Comment" opens a comment box, or posts the text typed into one: only the second needs an OK.
+  assert.ok(!isIrreversible(t('Comment')));
+  assert.ok(isIrreversible({ kind: 'click', label: 'Comment', element: { label: 'Comment', publishes: true } }));
 });
 
 test('buildFind offers every visible element plus none', () => {
