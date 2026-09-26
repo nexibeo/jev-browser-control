@@ -20,7 +20,7 @@ Five everyday tasks, run live in Claude Code on September 26, 2026:
 | *Get the transcript of my YouTube video "Future of Work" and summarise it* | Jev opens "Show transcript"; Claude reads the whole transcript and summarises it | 3 actions · 3.3 s · $0.0044 |
 | *Order a large pizza with bacon for 19:30 on the test form. Stop before you submit.* | Jev fills in eight fields and stops before "Submit order" | 8 actions · 11.2 s · $0.0070 |
 
-Costs are at the jevbrowsercontrol.com credits price (5× OpenRouter's); with your own OpenRouter key they are a fifth of that. Clicks that buy, pay, send, post or delete, and a Comment or Reply button that would publish what was typed, always stop and wait for your OK.
+Costs are at the jevbrowsercontrol.com credits price (5× OpenRouter's); with your own OpenRouter key they are a fifth of that. Clicks that buy, pay, send, post or delete, and a Comment or Reply button that would publish what was typed, stop and wait for your OK. For fully automatic runs, switch that off with `JBC_CONFIRM_IRREVERSIBLE=0` (add `-e JBC_CONFIRM_IRREVERSIBLE=0` to the install command, or put it in `config.env`).
 
 ## Install
 
