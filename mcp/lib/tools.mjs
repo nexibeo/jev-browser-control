@@ -3,161 +3,175 @@
 const tabId = { type: 'integer', description: 'Tab to act on. Omit to use the tab Claude used last (or the active tab).' };
 const ref = { type: 'integer', description: 'Element number from the latest browser_snapshot, shown as [n].' };
 
+// Every tool carries all three MCP hints with explicit values, because app directories and
+// clients rely on them: readOnlyHint (changes nothing), destructiveHint (may have effects that
+// can't be taken back, such as a click that submits, posts or buys) and openWorldHint (works
+// on arbitrary websites). Descriptions only say what a tool does and returns.
+const hints = (readOnlyHint, destructiveHint, openWorldHint) => ({ readOnlyHint, destructiveHint, openWorldHint });
+
 export const TOOLS = [
   {
     name: 'browser_status',
     title: 'Browser status',
-    description: 'Check that the browser is ready, which tab is current, and how Jev is configured (key, models, limits). Call this first, and whenever another tool reports a problem.',
+    description: 'Reports whether the browser is ready, which tab is current, and how Jev is set up: whether a key is set, the models, the limits per task and whether irreversible clicks stop for confirmation.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, false),
     method: 'status',
   },
   {
     name: 'browser_tabs',
     title: 'List or switch tabs',
-    description: 'List all open tabs in the user\'s Chrome, or select or close one. The selected tab becomes the current tab for later calls.',
+    description: 'Lists the open tabs (id, title, URL), or with action "select" makes tab tabId the current tab for the other browser tools. Nothing is closed or changed on the pages.',
     inputSchema: {
       type: 'object',
       properties: {
-        action: { type: 'string', enum: ['list', 'select', 'close'], default: 'list' },
-        tabId: { type: 'integer', description: 'Required for select and close.' },
+        action: { type: 'string', enum: ['list', 'select'], default: 'list' },
+        tabId: { type: 'integer', description: 'The tab to select (required for select).' },
       },
       additionalProperties: false,
     },
-    annotations: { readOnlyHint: false, destructiveHint: false },
+    annotations: hints(false, false, false),
+  },
+  {
+    name: 'browser_close_tab',
+    title: 'Close a tab',
+    description: 'Closes tab tabId. Anything not saved on that page, such as a half-filled form, is lost.',
+    inputSchema: { type: 'object', properties: { tabId: { type: 'integer', description: 'The tab to close, from browser_tabs.' } }, required: ['tabId'], additionalProperties: false },
+    annotations: hints(false, true, false),
+    method: 'tabs.close',
   },
   {
     name: 'browser_navigate',
     title: 'Open a URL',
-    description: 'Open a URL in the current tab, or in a new tab with newTab: true. Returns the page\'s visible elements.',
+    description: 'Opens a URL in the current tab, or in a new tab with newTab: true, and returns the page\'s visible elements and text.',
     inputSchema: {
       type: 'object',
       properties: { url: { type: 'string', description: 'http or https URL' }, newTab: { type: 'boolean', default: false }, tabId },
       required: ['url'],
       additionalProperties: false,
     },
-    annotations: { openWorldHint: true },
+    annotations: hints(false, false, true),
     method: 'navigate',
     timeoutMs: 45_000,
   },
   {
     name: 'browser_snapshot',
     title: 'Read the page as numbered elements',
-    description: 'The current page as numbered interactive elements ([n] role "label" value) plus its visible text. Use the numbers as `ref` in browser_click, browser_type and browser_select. By default only elements inside the visible screen are listed; full: true lists the whole page (elements below are scrolled into view when you act on them).',
+    description: 'Returns the current page as numbered interactive elements ([n] role "label" value) and its visible text. The numbers are the ref values that the click, type, select, hover and key tools accept. By default only elements on the screen are listed; full: true lists the whole page.',
     inputSchema: { type: 'object', properties: { full: { type: 'boolean', default: false }, tabId }, additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'snapshot',
   },
   {
     name: 'browser_click',
     title: 'Click an element',
-    description: 'Click element [ref] from the latest snapshot with a real mouse click. Returns the updated visible elements. Before clicking anything that buys, pays, sends, posts or deletes, confirm with the user.',
+    description: 'Clicks element [ref] from the latest snapshot with a real mouse click and returns the updated visible elements. Depending on the page, a click can submit a form, send a message, post, buy or delete.',
     inputSchema: { type: 'object', properties: { ref, tabId }, required: ['ref'], additionalProperties: false },
-    annotations: { destructiveHint: true, openWorldHint: true },
+    annotations: hints(false, true, true),
     method: 'click',
   },
   {
     name: 'browser_type',
     title: 'Type into a field',
-    description: 'Replace the contents of text field [ref] with `text`. submit: true presses Enter afterwards. Password fields are never listed and can\'t be typed into.',
+    description: 'Replaces the text in field [ref] with `text`; submit: true presses Enter afterwards, which can submit the form. Password fields are not listed and can\'t be typed into.',
     inputSchema: {
       type: 'object',
       properties: { ref, text: { type: 'string' }, submit: { type: 'boolean', default: false }, tabId },
       required: ['ref', 'text'],
       additionalProperties: false,
     },
-    annotations: { destructiveHint: true, openWorldHint: true },
+    annotations: hints(false, true, true),
     method: 'type',
   },
   {
     name: 'browser_select',
     title: 'Choose a dropdown option',
-    description: 'Choose `option` (the visible label) in dropdown [ref].',
+    description: 'Chooses `option` (its visible label) in dropdown [ref] and returns the updated visible elements. Some pages act on a new choice straight away.',
     inputSchema: { type: 'object', properties: { ref, option: { type: 'string' }, tabId }, required: ['ref', 'option'], additionalProperties: false },
-    annotations: { destructiveHint: true },
+    annotations: hints(false, true, true),
     method: 'select',
   },
   {
     name: 'browser_press_key',
     title: 'Press a key',
-    description: 'Press a key or combination in the page: Enter, Tab, Escape, ArrowDown, PageDown, Backspace, a letter, or combos like "Control+A" / "Meta+A". With ref, the element is focused first.',
+    description: 'Presses a key or combination in the page: Enter, Tab, Escape, ArrowDown, PageDown, Backspace, a letter, or combinations like "Control+A" or "Meta+A". With ref, that element is focused first. Enter can submit a form.',
     inputSchema: { type: 'object', properties: { key: { type: 'string' }, ref, tabId }, required: ['key'], additionalProperties: false },
-    annotations: { destructiveHint: true },
+    annotations: hints(false, true, true),
     method: 'key',
   },
   {
     name: 'browser_scroll',
     title: 'Scroll',
-    description: 'Scroll the page (or the scroll area under the middle of the page) up or down by about one screen, or by `amount` pixels.',
+    description: 'Scrolls the page (or the scroll area under the middle of the page) up or down by about one screen, or by `amount` pixels, and returns the visible elements.',
     inputSchema: { type: 'object', properties: { direction: { type: 'string', enum: ['down', 'up'], default: 'down' }, amount: { type: 'integer' }, tabId }, additionalProperties: false },
-    annotations: { readOnlyHint: false, destructiveHint: false },
+    annotations: hints(false, false, true),
     method: 'scroll',
   },
   {
     name: 'browser_back',
     title: 'Back or forward',
-    description: 'Go back in the tab\'s history, or forward with forward: true.',
+    description: 'Goes back in the tab\'s history, or forward with forward: true, and returns the visible elements.',
     inputSchema: { type: 'object', properties: { forward: { type: 'boolean', default: false }, tabId }, additionalProperties: false },
-    annotations: { destructiveHint: false },
+    annotations: hints(false, false, true),
     method: 'history',
   },
   {
     name: 'browser_wait',
     title: 'Wait',
-    description: 'Wait until `text` appears on the page (up to `seconds`, max 30), or just wait `seconds`.',
+    description: 'Waits until `text` appears on the page (up to `seconds`, at most 30), or simply waits `seconds`, then returns the visible elements.',
     inputSchema: { type: 'object', properties: { text: { type: 'string' }, seconds: { type: 'number', default: 5 }, tabId }, additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'wait',
     timeoutMs: 40_000,
   },
   {
     name: 'browser_read',
     title: 'Read the whole page',
-    description: 'The whole page as markdown (headings, links, lists), plain text, or a list of links. Long pages are paged: pass offset to continue.',
+    description: 'Returns the whole page as markdown (headings, links, lists), plain text, or a list of links. Long pages come in parts; offset continues where the last part ended.',
     inputSchema: {
       type: 'object',
       properties: { format: { type: 'string', enum: ['markdown', 'text', 'links'], default: 'markdown' }, offset: { type: 'integer', default: 0 }, limit: { type: 'integer', default: 20000 }, tabId },
       additionalProperties: false,
     },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'read',
   },
   {
     name: 'browser_screenshot',
     title: 'Screenshot',
-    description: 'A JPEG screenshot of the visible part of the page. Use it to check layout, images or anything the text snapshot misses.',
+    description: 'Returns a JPEG screenshot of the visible part of the page.',
     inputSchema: { type: 'object', properties: { quality: { type: 'integer', minimum: 20, maximum: 95, default: 70 }, tabId }, additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'screenshot',
   },
   {
     name: 'browser_hover',
     title: 'Hover over an element',
-    description: 'Move the mouse onto element [ref] without clicking, to open menus that appear on hover (reaction pickers, navigation menus, tooltips). Returns the updated visible elements, including what the hover revealed.',
+    description: 'Moves the mouse onto element [ref] without clicking, which opens menus that appear on hover (reaction pickers, navigation menus, tooltips). Returns the updated visible elements, including what the hover revealed.',
     inputSchema: { type: 'object', properties: { ref, tabId }, required: ['ref'], additionalProperties: false },
-    annotations: { readOnlyHint: false, destructiveHint: false },
+    annotations: hints(false, false, true),
     method: 'hover',
   },
   {
     name: 'browser_clipboard',
     title: 'Read what the page copied',
-    description: 'The text the page last copied, for example after a "Copy link" menu item. Only text copied on the current page since it loaded.',
+    description: 'Returns the text the page last copied, for example after a "Copy link" menu item. Only text copied on the current page since it loaded.',
     inputSchema: { type: 'object', properties: { tabId }, additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'clipboard',
     browserOnly: true,
   },
   {
     name: 'browser_record',
     title: 'Record the browser screen',
-    description: 'Start or stop a screen recording of the browser (the current tab, following tab switches). stop saves an MP4 on this computer and returns its path.',
+    description: 'Starts or stops a screen recording of the browser (the current tab, following tab switches). stop saves an MP4 file on this computer and returns its path.',
     inputSchema: {
       type: 'object',
       properties: { action: { type: 'string', enum: ['start', 'stop'] }, name: { type: 'string', description: 'Optional name for the file (start only).' } },
       required: ['action'],
       additionalProperties: false,
     },
-    annotations: { readOnlyHint: true },
+    annotations: hints(false, false, false),
     method: 'record',
     browserOnly: true,
     timeoutMs: 180_000,
@@ -166,12 +180,11 @@ export const TOOLS = [
     name: 'jev_task',
     title: 'Hand a browser task to Jev',
     description:
-      'Delegate a multi-step browser task to Jev, TypeSafe\'s fast decision model. Jev reads the page as numbered elements and picks one action per step ' +
-      '(about 0.5 s and a fraction of a cent per step) until the goal is met. Good for navigating, searching, setting filters and filling forms. ' +
-      'Put every value that must be typed (names, dates, addresses, search terms) in the goal or in `details`; the text helper never invents personal data. ' +
-      'Returns the status (done, done_unconfirmed, blocked, stuck, budget, needs_confirmation, needs_input), each step, the cost and the final page\'s visible text. ' +
-      'Clicks that buy, pay, send, post or delete stop with needs_confirmation unless allowIrreversible is true; only set it after the user agreed. ' +
-      'Jev can pick a confident near-miss: check the final page before telling the user it worked.',
+      'Runs a multi-step browser task with Jev, TypeSafe\'s decision model. Jev reads the page as numbered elements and picks one action per step ' +
+      '(about 0.5 s and a fraction of a cent per step) until the goal is met, a limit is reached, or it needs the user. Suited to navigating, searching, setting filters and filling forms. ' +
+      'Jev types only values given in `goal` or `details` and does not invent personal data. ' +
+      'Clicks that buy, pay, send, post or delete stop with status needs_confirmation, unless allowIrreversible is true. ' +
+      'Returns the status (done, done_unconfirmed, blocked, stuck, budget, needs_confirmation, needs_input), each step, the cost and the final page\'s visible text.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -181,38 +194,38 @@ export const TOOLS = [
         newTab: { type: 'boolean', default: false, description: 'Open url in a new tab.' },
         maxSteps: { type: 'integer', minimum: 1, maximum: 200 },
         maxSeconds: { type: 'integer', minimum: 5, maximum: 1800 },
-        allowIrreversible: { type: 'boolean', default: false },
+        allowIrreversible: { type: 'boolean', default: false, description: 'true lets Jev click buy, pay, send, post and delete buttons without stopping.' },
         tabId,
       },
       required: ['goal'],
       additionalProperties: false,
     },
-    annotations: { destructiveHint: true, openWorldHint: true },
+    annotations: hints(false, true, true),
     method: 'jev.task',
     timeoutMs: 35 * 60_000,
   },
   {
     name: 'jev_find',
     title: 'Find an element with Jev',
-    description: 'Ask Jev which visible element best matches a description ("the Add to cart button for the blue shirt"). Returns the top candidates with refs and probabilities; nothing is clicked. One fast, cheap call.',
+    description: 'Asks Jev which visible element best matches a description ("the Add to cart button for the blue shirt"). Returns the top candidates with their refs and probabilities; nothing is clicked. One fast, low-cost call.',
     inputSchema: { type: 'object', properties: { description: { type: 'string' }, tabId }, required: ['description'], additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'jev.find',
   },
   {
     name: 'jev_check',
     title: 'Check a statement about the page',
-    description: 'Ask Jev how likely a statement about the current page is true ("The cart contains 2 items", "The user is logged in"). Returns a probability from 0 to 1. Useful to verify a result cheaply.',
+    description: 'Asks Jev how likely a statement about the current page is true ("The cart contains 2 items", "The user is logged in"). Returns a probability from 0 to 1. One fast, low-cost call.',
     inputSchema: { type: 'object', properties: { statement: { type: 'string' }, tabId }, required: ['statement'], additionalProperties: false },
-    annotations: { readOnlyHint: true },
+    annotations: hints(true, false, true),
     method: 'jev.check',
   },
   {
     name: 'jev_stop',
     title: 'Stop Jev',
-    description: 'Stop every running Jev task in the browser.',
+    description: 'Stops every running Jev task in the browser.',
     inputSchema: { type: 'object', properties: {}, additionalProperties: false },
-    annotations: { destructiveHint: false },
+    annotations: hints(false, false, false),
     method: 'jev.stop',
   },
 ];
@@ -300,6 +313,8 @@ export function formatResult(tool, result) {
         `Ask before irreversible clicks: ${result.settings.confirm_irreversible ? 'yes' : 'no'}; input: ${result.settings.input_mode}`,
         result.running_tasks.length ? `Running: ${result.running_tasks.map((t) => `${q(t.goal)} in tab ${t.tabId}`).join('; ')}` : 'No Jev task running.',
       ].join('\n');
+    case 'browser_close_tab':
+      return `Closed tab ${result.closed}.`;
     case 'browser_tabs':
       if (Array.isArray(result)) return result.map((t) => `${t.current ? '*' : ' '} ${t.tabId}${t.active ? ' (active)' : ''} · ${t.title} — ${t.url}`).join('\n') + '\n\n* = current tab for browser tools';
       return JSON.stringify(result);

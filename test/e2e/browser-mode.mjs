@@ -91,6 +91,10 @@ try {
   ok(/Final page: Terms of service/.test(popup.text), 'a link that opens a new tab is followed', popup.text.match(/Status: \w+/)?.[0]);
   const tabs = await a.tool('browser_tabs');
   ok(/Terms of service/.test(tabs.text) && tabs.text.split('\n').filter((l) => /^\S?\s*\d+/.test(l)).length >= 2, 'browser_tabs lists both tabs');
+  const termsTab = Number(tabs.text.split('\n').find((l) => /Terms of service/.test(l))?.match(/(\d+)/)?.[1]);
+  const closed = await a.tool('browser_close_tab', { tabId: termsTab });
+  const left = await a.tool('browser_tabs');
+  ok(/Closed tab/.test(closed.text) && !/Terms of service/.test(left.text), 'browser_close_tab closes the new tab', closed.text);
 
   const wiki = await a.tool('jev_task', { goal: 'Search Wikipedia for "Ristretto" and open the Ristretto article.', url: 'https://en.wikipedia.org/wiki/Main_Page', maxSteps: 12 });
   ok(/Status: done/.test(wiki.text) && /Final page: .*Ristretto/.test(wiki.text), 'jev_task on live Wikipedia', `${wiki.ms} ms · ${wiki.text.match(/Steps: [^\n]+/)?.[0]}`);

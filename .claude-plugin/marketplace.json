@@ -1,0 +1,17 @@
+{
+  "name": "jev-browser-control",
+  "owner": {
+    "name": "Nexibeo",
+    "email": "contact@jevbrowsercontrol.com"
+  },
+  "metadata": {
+    "description": "Jev Browser Control: let Claude drive a real Chrome window, with Jev choosing each click."
+  },
+  "plugins": [
+    {
+      "name": "jev-browser-control",
+      "source": "./mcp",
+      "description": "Let Claude drive a real Chrome window: open pages, read them, click, type and fill in forms, with Jev running multi-step tasks for a fraction of a cent per step."
+    }
+  ]
+}

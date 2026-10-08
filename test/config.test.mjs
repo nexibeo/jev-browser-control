@@ -35,3 +35,21 @@ test('a key added to config.env while running counts from the next call', () => 
   writeFileSync(join(home, 'config.env'), 'OPENROUTER_API_KEY=sk-or-v1-test\n');
   assert.equal(lb.provider().label, 'Your OpenRouter key');
 });
+
+test('plugin settings: a blank key leaves config.env in charge, and false switches confirmations off', () => {
+  writeFileSync(join(home, 'config.env'), 'JBC_API_KEY=jbc_from_file\n');
+  process.env.JBC_API_KEY = '${user_config.jbc_api_key}';
+  process.env.OPENROUTER_API_KEY = '';
+  let c = loadConfig();
+  assert.equal(c.settings.cloudKey, 'jbc_from_file');
+  assert.equal(c.settings.provider, 'cloud');
+  assert.equal(c.settings.confirmIrreversible, true);
+  for (const off of ['0', 'false', 'FALSE', 'no', 'off']) {
+    process.env.JBC_CONFIRM_IRREVERSIBLE = off;
+    assert.equal(loadConfig().settings.confirmIrreversible, false, off);
+  }
+  process.env.JBC_CONFIRM_IRREVERSIBLE = 'true';
+  c = loadConfig();
+  assert.equal(c.settings.confirmIrreversible, true);
+  for (const k of ['JBC_API_KEY', 'OPENROUTER_API_KEY', 'JBC_CONFIRM_IRREVERSIBLE']) delete process.env[k];
+});

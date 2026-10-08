@@ -111,3 +111,16 @@ test('initialize, list tools, call tools, stream progress', async () => {
     s.child.kill();
   }
 });
+
+test('every tool carries all three safety hints and a description without instructions to call other tools', async () => {
+  const { TOOLS } = await import('../mcp/lib/tools.mjs');
+  for (const t of TOOLS) {
+    const a = t.annotations;
+    for (const h of ['readOnlyHint', 'destructiveHint', 'openWorldHint']) assert.equal(typeof a[h], 'boolean', `${t.name} ${h}`);
+    assert.ok(!(a.readOnlyHint && a.destructiveHint), t.name);
+    assert.ok(t.title, t.name);
+    assert.doesNotMatch(t.description, /\b(call|use) (this|it|browser_|jev_)|confirm with the user|only set it after/i, t.name);
+  }
+  assert.equal(TOOLS.find((t) => t.name === 'browser_tabs').annotations.destructiveHint, false);
+  assert.equal(TOOLS.find((t) => t.name === 'browser_close_tab').annotations.destructiveHint, true);
+});

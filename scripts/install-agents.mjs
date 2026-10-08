@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Installs Jev Browser Control for Claude Code and/or OpenAI Codex on this computer:
 //   - registers the MCP server as "jev-browser" (Claude Code: user scope; Codex: ~/.codex/config.toml)
-//   - copies the jev-browser skill (agents/skills/jev-browser) to ~/.claude/skills and ~/.codex/skills
-//   - copies the Claude Code subagent (agents/claude-code/jev-browser.md) to ~/.claude/agents
+//   - copies the jev-browser skill (mcp/skills/jev-browser) to ~/.claude/skills and ~/.codex/skills
+//   - copies the Claude Code subagent (mcp/agents/jev-browser.md) to ~/.claude/agents
+// (The same mcp/ folder is also the Claude Code plugin; installing the plugin instead does all of this.)
 //
 //   node scripts/install-agents.mjs              both, whichever is installed
 //   node scripts/install-agents.mjs --claude     only Claude Code
@@ -13,7 +14,7 @@
 //   node scripts/install-agents.mjs --uninstall  remove everything this script added
 //   add --dry-run to print the steps without changing anything
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, cpSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, cpSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -24,7 +25,7 @@ const dry = args.has('--dry-run');
 const uninstall = args.has('--uninstall');
 const only = args.has('--claude') || args.has('--codex');
 const NAME = 'jev-browser';
-const TARBALL = 'https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz';
+const TARBALL = 'https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz';
 const extensionMode = args.has('--extension');
 // Homebrew's versioned Cellar path breaks on the next Node update; prefer its stable opt/ link.
 function stableNode() {
@@ -49,6 +50,13 @@ function copy(from, to) {
   if (dry) return;
   mkdirSync(dirname(to), { recursive: true });
   cpSync(from, to, { recursive: true });
+}
+// The subagent in mcp/agents names the plugin's tools; a server registered as "jev-browser" names them mcp__jev-browser__*.
+function copyAgent(from, to) {
+  console.log(`  copy ${from.replace(ROOT + '/', '')} -> ${to}`);
+  if (dry) return;
+  mkdirSync(dirname(to), { recursive: true });
+  writeFileSync(to, readFileSync(from, 'utf8').replaceAll('mcp__plugin_jev-browser-control_jev-browser__', `mcp__${NAME}__`));
 }
 function remove(path) {
   if (!existsSync(path)) return;
@@ -98,8 +106,8 @@ if (doClaude) {
   } else {
     if (claude) run(claude, ['mcp', 'add', '-s', 'user', ...envFlags('-e'), NAME, '--', ...server]);
     else console.log(`  claude CLI not found; add the MCP server yourself: claude mcp add -s user ${envFlags('-e').join(' ')} ${NAME} -- ${server.join(' ')}`);
-    copy(join(ROOT, 'agents/claude-code/jev-browser.md'), join(home, '.claude/agents/jev-browser.md'));
-    copy(join(ROOT, 'agents/skills/jev-browser'), join(home, '.claude/skills/jev-browser'));
+    copyAgent(join(ROOT, 'mcp/agents/jev-browser.md'), join(home, '.claude/agents/jev-browser.md'));
+    copy(join(ROOT, 'mcp/skills/jev-browser'), join(home, '.claude/skills/jev-browser'));
   }
 }
 
@@ -111,7 +119,7 @@ if (doCodex) {
   } else {
     if (codex) run(codex, ['mcp', 'add', NAME, ...envFlags('--env'), '--', ...server]);
     else console.log(`  codex CLI not found; add to ~/.codex/config.toml:\n  [mcp_servers.${NAME}]\n  command = "${server[0]}"\n  args = ${JSON.stringify(server.slice(1))}${extensionMode ? '\n  env = { JBC_MODE = "extension" }' : ''}`);
-    copy(join(ROOT, 'agents/skills/jev-browser'), join(home, '.codex/skills/jev-browser'));
+    copy(join(ROOT, 'mcp/skills/jev-browser'), join(home, '.codex/skills/jev-browser'));
   }
 }
 

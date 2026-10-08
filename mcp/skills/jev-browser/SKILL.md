@@ -17,7 +17,7 @@ The server runs in one of two modes, and `browser_status` says which:
 1. Call `browser_status`. The first call in browser mode opens the Chrome window, which takes a few seconds.
    - "Chrome could not start" or a similar error: pass the message on. It says what to install or change.
    - "Extension: not connected" (extension mode): ask the user to open Chrome, click the orange Jev toolbar icon, and check that "Let Claude control this browser" is on in its settings. Install steps: https://jevbrowsercontrol.com/docs#install
-   - "NO KEY SET" or "NO API KEY SET": the `jev_*` tools fail until the user adds a key. In browser mode it goes in `~/.jev-browser-control/config.env` (`OPENROUTER_API_KEY=...` or `JBC_API_KEY=jbc_...`); in extension mode, in the extension settings. The `browser_*` tools still work.
+   - "NO KEY SET" or "NO API KEY SET": the `jev_*` tools fail until the user adds a key. In browser mode it goes in the plugin's settings (`/plugin`, Jev Browser Control, Configure) when the tools come from the Jev Browser Control plugin, or in `~/.jev-browser-control/config.env` (`JBC_API_KEY=jbc_...` or `OPENROUTER_API_KEY=...`); in extension mode, in the extension settings. The `browser_*` tools still work.
 2. In browser mode, use the current tab. In extension mode, open a new one with `browser_navigate` and `newTab: true` so the user's own tabs stay untouched.
 3. When a site needs a login, ask the user to sign in in the Chrome window, wait until they say they're done, then continue.
 
@@ -37,6 +37,7 @@ Clicking through pages doesn't need you. In a measured comparison on the same ta
 | Check a result cheaply ("the cart has 2 items") | `jev_check`, which returns a probability |
 | Layout, images, charts, anything visual | `browser_screenshot` |
 | Something is loading | `browser_wait` with the text you expect |
+| Switch tabs, or close one you opened | `browser_tabs` (list, select), `browser_close_tab` |
 | A menu that only opens on hover (reaction picker, navigation menu) | `browser_hover` on the element, then click the item it reveals |
 | The link a "Copy link" menu item copied | click it, then `browser_clipboard` (browser mode) |
 | The user wants a recording of what happened | `browser_record` with `start` before and `stop` after; stop returns the MP4 path (browser mode) |

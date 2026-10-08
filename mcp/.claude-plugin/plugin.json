@@ -1,0 +1,53 @@
+{
+  "name": "jev-browser-control",
+  "displayName": "Jev Browser Control",
+  "version": "0.4.1",
+  "description": "Let Claude drive a real Chrome window: open pages, read them, click, type and fill in forms. Jev, a fast decision model, can run whole multi-step tasks at about half a second and a fraction of a cent per step. Logins you make in the window are kept, and clicks that buy, pay, send, post or delete wait for your OK.",
+  "author": {
+    "name": "Nexibeo",
+    "email": "contact@jevbrowsercontrol.com",
+    "url": "https://jevbrowsercontrol.com"
+  },
+  "homepage": "https://jevbrowsercontrol.com/how-to",
+  "repository": "https://github.com/nexibeo/jev-browser-control",
+  "license": "MIT",
+  "keywords": ["browser", "chrome", "browser-automation", "web", "forms", "research", "jev"],
+  "icon": "./assets/logo.png",
+  "documentationUrl": "https://jevbrowsercontrol.com/docs",
+  "supportUrl": "https://github.com/nexibeo/jev-browser-control/issues",
+  "privacyPolicyUrl": "https://jevbrowsercontrol.com/privacy",
+  "termsOfServiceUrl": "https://jevbrowsercontrol.com/terms",
+  "mcpServers": {
+    "jev-browser": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server.mjs"],
+      "env": {
+        "JBC_API_KEY": "${user_config.jbc_api_key}",
+        "OPENROUTER_API_KEY": "${user_config.openrouter_api_key}",
+        "JBC_CONFIRM_IRREVERSIBLE": "${user_config.ask_before_irreversible}"
+      }
+    }
+  },
+  "userConfig": {
+    "jbc_api_key": {
+      "type": "string",
+      "title": "Jev Browser Control key",
+      "description": "Your jbc_ key from jevbrowsercontrol.com/dashboard (prepaid credits). Leave empty if you use your own OpenRouter key below, or keep keys in ~/.jev-browser-control/config.env.",
+      "sensitive": true,
+      "default": ""
+    },
+    "openrouter_api_key": {
+      "type": "string",
+      "title": "Or: your own OpenRouter key",
+      "description": "Run Jev on your own OpenRouter account instead of credits (sk-or-v1-...). Leave empty when you use a Jev Browser Control key.",
+      "sensitive": true,
+      "default": ""
+    },
+    "ask_before_irreversible": {
+      "type": "boolean",
+      "title": "Ask before buying, sending, posting or deleting",
+      "description": "On: jev_task stops before clicks that buy, pay, send, post or delete, and Claude asks you. Off: such tasks run to the end without asking.",
+      "default": true
+    }
+  }
+}

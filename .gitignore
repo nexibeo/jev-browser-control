@@ -3,6 +3,5 @@ dist/
 .env
 .env.*
 !.env.example
-mcp/LICENSE
 .DS_Store
 *.tmp.mjs

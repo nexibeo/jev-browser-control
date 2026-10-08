@@ -26,17 +26,28 @@ Costs are at the jevbrowsercontrol.com credits price (5× OpenRouter's); with yo
 
 Needs Node.js 18+ and Google Chrome. Nothing to install in the browser: the MCP server opens its own Chrome window.
 
+**As a Claude Code plugin** (the MCP server plus a skill and a subagent that know how to use it):
+
+```
+/plugin marketplace add nexibeo/jev-browser-control
+/plugin install jev-browser-control@jev-browser-control
+```
+
+Claude Code asks for your key when you enable it. The plugin is the [`mcp/`](mcp) folder; its [README](mcp/README.md) lists what it runs and what it sends where.
+
+**Or as an MCP server**, for Claude Code, Codex and other clients:
+
 1. **Get a key.** Create one in the [dashboard](https://jevbrowsercontrol.com/dashboard) (prepaid credits, from $10), or use your own [OpenRouter key](https://openrouter.ai/settings/keys).
 2. **Add the MCP server with your key.** Claude Code:
 
    ```bash
-   claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
+   claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz
    ```
 
    Codex:
 
    ```bash
-   codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.0.tgz
+   codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz
    ```
 
    With your own OpenRouter key, use `OPENROUTER_API_KEY=sk-or-v1-...` instead. To keep the key out of Claude's and Codex's config, leave out `-e`/`--env` and put the same line in `~/.jev-browser-control/config.env`.
@@ -46,7 +57,7 @@ From a clone, `node scripts/install-agents.mjs` does all of this for Claude Code
 
 ## What you get
 
-- **An MCP server** for Claude Code, Codex and Claude Desktop, with 20 tools: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_hover` (menus that open on hover, like reaction pickers), `browser_read`, `browser_screenshot`, `browser_clipboard` (what a "Copy link" menu copied), `browser_record` (a screen recording of the browser, saved as MP4) and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`. By default it drives its own Chrome window through Playwright (browser mode).
+- **An MCP server** for Claude Code, Codex and Claude Desktop, with 21 tools: `browser_navigate`, `browser_snapshot`, `browser_click`, `browser_type`, `browser_select`, `browser_hover` (menus that open on hover, like reaction pickers), `browser_read`, `browser_screenshot`, `browser_clipboard` (what a "Copy link" menu copied), `browser_record` (a screen recording of the browser, saved as MP4), `browser_tabs` and `browser_close_tab` and more, plus `jev_task` (hand a whole sub-task to Jev), `jev_find` and `jev_check`. By default it drives its own Chrome window through Playwright (browser mode).
 - **A Chrome extension** (extension mode) for driving your everyday Chrome, with your normal profile and open tabs. It reads the page the same way and acts with trusted input. Run tasks from its side panel, or let Claude drive it.
 - **Your choice of who pays for Jev:** your own OpenRouter key (free, this repo), prepaid credits from [jevbrowsercontrol.com](https://jevbrowsercontrol.com/dashboard) (one key, 5× OpenRouter's price), or any compatible endpoint such as TypeSafe direct.
 
@@ -66,9 +77,9 @@ From a clone, `node scripts/install-agents.mjs` does all of this for Claude Code
 
    or `node scripts/install-agents.mjs --extension`. Claude Desktop: add `{"mcpServers": {"jev-browser": {"command": "node", "args": ["/path/to/mcp/server.mjs"], "env": {"JBC_MODE": "extension"}}}}` to its config.
 
-**Grok Bot, ChatGPT, claude.ai and other cloud apps.** They can't start a local program, so jevbrowsercontrol.com offers the same tools as a remote MCP server at `https://jevbrowsercontrol.com/mcp` (bearer: your `jbc_` key). Switch on **Remote AI apps** in the extension's settings and the extension keeps an outbound connection to the relay; it's off by default, and clicks that buy, pay, send, post or delete always wait for your OK in the side panel. For Grok Bot there is a ready-made template: [Jev Browser Operator](https://templatesgrokbot.com/bot/jev-browser-operator).
+**Grok Bot, ChatGPT, claude.ai and other cloud apps.** They can't start a local program, so jevbrowsercontrol.com offers the same tools as a remote MCP server at `https://jevbrowsercontrol.com/mcp`. claude.ai and ChatGPT connectors sign in with OAuth (the app gets its own key, which you can revoke in the dashboard); other apps send your `jbc_` key as a bearer token. Switch on **Remote AI apps** in the extension's settings and the extension keeps an outbound connection to the relay; it's off by default, and clicks that buy, pay, send, post or delete always wait for your OK in the side panel. For Grok Bot there is a ready-made template: [Jev Browser Operator](https://templatesgrokbot.com/bot/jev-browser-operator).
 
-**Claude Code and OpenAI Codex agent files.** [`agents/`](agents) has a skill (works in both) and a Claude Code subagent. `node scripts/install-agents.mjs` registers the MCP server and installs them for whichever of the two you have.
+**Claude Code and OpenAI Codex agent files.** [`mcp/skills/`](mcp/skills) has a skill (works in both) and [`mcp/agents/`](mcp/agents) a Claude Code subagent; the plugin installs both. Without the plugin, `node scripts/install-agents.mjs` registers the MCP server and installs them for whichever of Claude Code and Codex you have (`--npx` to use the published tarball, `--extension` for extension mode, `--uninstall` to remove it all).
 
 ## How a step works
 
@@ -122,12 +133,12 @@ September 19, 2026, OpenRouter prices. Without `--session` (one bare call per st
 | `extension/` | Manifest V3 extension: `background.js` (router), `lib/agent.js` (the loop), `lib/policy.js` (questions), `lib/page.js` (in-page snapshot and input), `lib/driver.js` (Chrome and CDP), `lib/provider.js` (OpenRouter / credits / custom), side panel and settings |
 | `mcp/` | MCP server: stdio JSON-RPC; browser mode in `lib/local-browser.mjs` (Playwright on the installed Chrome, running the loop from `lib/core/`, a copy of the extension's that `scripts/sync-core.mjs` keeps identical); extension mode through a small RFC 6455 WebSocket bridge on 127.0.0.1; peer mode so several sessions share one browser |
 | `test/` | Unit tests (policy, agent loop, provider, bridge, MCP over stdio, core copy in sync), `e2e/browser-mode.mjs` (the server's own Chrome + MCP + live Jev), `e2e/run.mjs` (Chrome + extension + MCP + live Jev) and `e2e/remote.mjs` (the same through the jevbrowsercontrol.com relay) |
-| `agents/` | A skill for Claude Code and Codex, and a Claude Code subagent |
+| `mcp/.claude-plugin/`, `mcp/skills/`, `mcp/agents/` | The Claude Code plugin around the MCP server: manifest with the key settings, a skill for Claude Code and Codex, and a Claude Code subagent. `.claude-plugin/marketplace.json` at the root lists it |
 | `scripts/` | `install-agents.mjs` (set up Claude Code and Codex), `build-zip.mjs` (release zip and npm tarball), `record-run.mjs` (record a task with every decision), `make-icons.mjs` |
 
 ```bash
 npm install && npm install --prefix mcp   # playwright-core
-npm test                    # 25 offline tests
+npm test                    # 27 offline tests
 OPENROUTER_API_KEY=... npm run e2e:browser            # browser mode, live, about $0.006
 CHROME_PATH=... OPENROUTER_API_KEY=... npm run e2e    # extension mode, live, about $0.005
 npm run zip                 # dist/ extension zips + MCP tarball

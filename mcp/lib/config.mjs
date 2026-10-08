@@ -6,7 +6,7 @@
 //   JBC_API_KEY          or on jevbrowsercontrol.com credits (jbc_ key)
 //   JBC_PROVIDER         openrouter | cloud (default: cloud when JBC_API_KEY is set, else openrouter)
 //   JBC_JEV_MODEL, JBC_TEXT_MODEL, JBC_MAX_STEPS, JBC_MAX_SECONDS, JBC_MAX_COST_USD
-//   JBC_CONFIRM_IRREVERSIBLE=0   let jev_task click buy/send/delete buttons without stopping
+//   JBC_CONFIRM_IRREVERSIBLE=0   let jev_task click buy/send/delete buttons without stopping (also false/no/off)
 //   JBC_BLOCKED_SITES    comma-separated domains the browser may not act on
 //   CHROME_PATH          a Chrome/Chromium binary; otherwise the installed Google Chrome is used
 //   JBC_CHROME_CHANNEL   chrome (default), chrome-beta, msedge, chromium
@@ -31,7 +31,8 @@ function parseEnvFile(path) {
 
 export function loadConfig() {
   const file = { ...parseEnvFile(join(HOME, 'config.env')), ...parseEnvFile(process.env.JBC_ENV_FILE) };
-  const env = { ...file, ...Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined && v !== '')) };
+  // Empty values, and a plugin setting the user left blank, don't override config.env.
+  const env = { ...file, ...Object.fromEntries(Object.entries(process.env).filter(([, v]) => v !== undefined && v !== '' && !/^\$\{user_config\./.test(v))) };
   const num = (k, d) => (env[k] !== undefined && !Number.isNaN(Number(env[k])) ? Number(env[k]) : d);
   const provider = env.JBC_PROVIDER || (env.JBC_API_KEY ? 'cloud' : 'openrouter');
   return {
@@ -46,7 +47,7 @@ export function loadConfig() {
       maxSeconds: num('JBC_MAX_SECONDS', 120),
       maxCostUsd: num('JBC_MAX_COST_USD', 0.1),
       maxElements: 240,
-      confirmIrreversible: env.JBC_CONFIRM_IRREVERSIBLE !== '0',
+      confirmIrreversible: !/^(0|false|no|off)$/i.test(String(env.JBC_CONFIRM_IRREVERSIBLE ?? '').trim()),
       blockedSites: env.JBC_BLOCKED_SITES || '',
     },
     browser: {
