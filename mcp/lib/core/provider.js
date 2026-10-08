@@ -16,10 +16,14 @@ export class ProviderError extends Error {
   }
 }
 
+const cloudBase = (s) => String(s.cloudBase || 'https://jevbrowsercontrol.com').replace(/\/+$/, '');
+// Where credits customers check their balance, add credits and get keys.
+export const dashboardUrl = (s) => `${cloudBase(s)}/dashboard`;
+
 export function endpoints(s) {
   if (s.provider === 'cloud') {
-    const base = String(s.cloudBase || 'https://jevbrowsercontrol.com').replace(/\/+$/, '');
-    return { decisions: `${base}/api/v1/decisions`, chat: `${base}/api/v1/chat/completions`, key: s.cloudKey, chatKey: s.cloudKey, label: 'Jev Browser Control credits' };
+    const base = cloudBase(s);
+    return { decisions: `${base}/api/v1/decisions`, chat: `${base}/api/v1/chat/completions`, balance: `${base}/api/v1/balance`, key: s.cloudKey, chatKey: s.cloudKey, label: 'Jev Browser Control credits' };
   }
   if (s.provider === 'custom') {
     return { decisions: s.customDecisionsUrl, chat: s.customChatUrl || OPENROUTER_CHAT, key: s.customKey, chatKey: s.customChatKey || s.customKey, label: 'Custom endpoint' };
@@ -34,7 +38,11 @@ export function makeProvider(settings, { fetchImpl = fetch, settingsName = 'the 
 
   async function post(url, key, body, { signal } = {}) {
     if (!url) throw new ProviderError(`No endpoint configured. Check ${settingsName}.`, { code: 'config' });
-    if (!key) throw new ProviderError(`No API key set for "${ep.label}". Check ${settingsName}.`, { code: 'no_key' });
+    if (!key) {
+      throw new ProviderError(settings.provider === 'cloud'
+        ? `No Jev Browser Control key set. Get one at ${dashboardUrl(settings)} and add it in ${settingsName}.`
+        : `No API key set for "${ep.label}". Check ${settingsName}.`, { code: 'no_key' });
+    }
     for (let attempt = 0; ; attempt++) {
       let res;
       try {
@@ -64,8 +72,14 @@ export function makeProvider(settings, { fetchImpl = fetch, settingsName = 'the 
       if (!res.ok) {
         const msg = json?.error?.message || json?.error || text.slice(0, 300);
         const code = /max_tokens_exceeded/.test(text) ? 'max_tokens_exceeded' : res.status === 402 ? 'no_credits' : res.status === 401 ? 'bad_key' : 'http';
-        const hint = code === 'no_credits' ? (settings.provider === 'cloud' ? ' Top up at jevbrowsercontrol.com/dashboard.' : ' Top up your OpenRouter credits.')
-          : code === 'bad_key' ? ` Check the API key in ${settingsName}.` : '';
+        // Credits customers get a plain message that sends them to the dashboard.
+        if (settings.provider === 'cloud' && code === 'no_credits') {
+          throw new ProviderError(`Your Jev Browser Control credits are used up. Add credits at ${dashboardUrl(settings)}, then try again.`, { status: res.status, code });
+        }
+        if (settings.provider === 'cloud' && code === 'bad_key') {
+          throw new ProviderError(`The Jev Browser Control key was not accepted. Check it in ${settingsName}, or create a new one at ${dashboardUrl(settings)}.`, { status: res.status, code });
+        }
+        const hint = code === 'no_credits' ? ' Top up your OpenRouter credits.' : code === 'bad_key' ? ` Check the API key in ${settingsName}.` : '';
         throw new ProviderError(`${ep.label}: HTTP ${res.status}: ${typeof msg === 'string' ? msg : JSON.stringify(msg)}${hint}`, { status: res.status, code });
       }
       if (!json) throw new ProviderError(`${ep.label}: response was not JSON`, { code: 'bad_response' });
@@ -79,6 +93,24 @@ export function makeProvider(settings, { fetchImpl = fetch, settingsName = 'the 
     label: ep.label,
     get cost() { return cost; },
     get balance() { return balance; },
+
+    // The credits balance in dollars, or null when it can't be read (own key, no key, offline).
+    async balanceNow({ timeoutMs = 5000 } = {}) {
+      if (!ep.balance || !ep.key) return null;
+      for (let attempt = 0; attempt < 2; attempt++) { // one retry for a dropped connection
+        try {
+          const res = await fetchImpl(ep.balance, { headers: { Authorization: `Bearer ${ep.key}` }, signal: AbortSignal.timeout(timeoutMs) });
+          if (!res.ok) return null;
+          const usd = Number((await res.json()).balance_usd);
+          if (!Number.isFinite(usd)) return null;
+          balance = usd;
+          return usd;
+        } catch {
+          if (attempt === 0) await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      return null;
+    },
 
     // One Jev request: { model, state, questions } -> { answers, model, usage }
     async decide(body, opts) {

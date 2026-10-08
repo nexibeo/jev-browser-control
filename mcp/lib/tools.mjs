@@ -233,6 +233,26 @@ export const TOOLS = [
 // ---------- formatting ----------
 
 const q = (s) => JSON.stringify(String(s ?? ''));
+const DASHBOARD = 'https://jevbrowsercontrol.com/dashboard';
+// Below this balance, results remind the user where to add credits.
+export const LOW_CREDITS_USD = 1;
+
+export function creditsNote(usd, dashboard = DASHBOARD) {
+  if (typeof usd !== 'number') return '';
+  if (usd <= 0.001) return `Jev Browser Control credits are used up. Add credits at ${dashboard}.`;
+  if (usd < LOW_CREDITS_USD) return `Jev Browser Control credits are running low: $${usd.toFixed(2)} left. Add credits at ${dashboard}.`;
+  return '';
+}
+
+function jevLine(s) {
+  const dashboard = s.dashboard || DASHBOARD;
+  if (s.provider !== 'cloud') return `Jev: own OpenRouter key${s.key_set ? '' : ' (NO KEY SET: jev_* tools will fail until a key is added)'}`;
+  if (!s.key_set) return `Jev: NO KEY SET. The jev_* tools need a Jev Browser Control key: the user gets one at ${dashboard} and adds it in ${s.key_where || 'the settings'}. The browser_* tools work without it.`;
+  if (typeof s.credits_usd !== 'number') return `Jev: Jev Browser Control credits (balance: ${dashboard})`;
+  if (s.credits_usd <= 0.001) return `Jev: Jev Browser Control credits are used up, so the jev_* tools won't run. The user adds credits at ${dashboard}.`;
+  if (s.credits_usd < LOW_CREDITS_USD) return `Jev: Jev Browser Control credits, $${s.credits_usd.toFixed(2)} left, running low. Add credits at ${dashboard}.`;
+  return `Jev: Jev Browser Control credits, $${s.credits_usd.toFixed(2)} left (add credits at ${dashboard})`;
+}
 
 export function formatPage(page, { tabId: tab, heading } = {}) {
   if (!page) return 'The page is not ready yet. Try browser_snapshot again.';
@@ -283,6 +303,8 @@ export function formatTask(r) {
   if (r.pending) lines.push(`Pending: [${r.pending.ref}] ${q(r.pending.label)} on ${r.pending.url}. Ask the user; then call browser_click with ref ${r.pending.ref}, or rerun with allowIrreversible: true.`);
   const cost = typeof r.cost_usd === 'number' ? `$${r.cost_usd.toFixed(5)}` : '';
   lines.push(`Steps: ${r.steps.length} actions, ${r.decisions} Jev calls, ${(r.elapsed_ms / 1000).toFixed(1)} s, ${cost}${r.credits_remaining_usd !== undefined ? `, $${r.credits_remaining_usd.toFixed(2)} credits left` : ''}${r.model ? ` (${r.model})` : ''}`);
+  const note = creditsNote(r.credits_remaining_usd);
+  if (note) lines.push(note);
   for (const s of r.steps) {
     const conf = s.target_confidence ?? s.confidence;
     lines.push(`${s.step}. ${s.operation} ${q(s.action)}${s.text !== undefined ? ` ← ${q(s.text)}` : ''} (${conf})${s.outcome !== 'done' ? ` ${s.outcome}` : ''}${s.page_changed ? '' : ' · no visible change'}`);
@@ -298,7 +320,7 @@ export function formatResult(tool, result) {
         `Browser: ready (Jev Browser Control ${result.version}, ${result.browser.executable}${result.browser.headless ? ', headless' : ', visible window'}, ${result.browser.tabs} tab(s))`,
         `Profile: ${result.browser.profile} (logins made in this window are kept)`,
         result.current_tab ? `Current tab: ${result.current_tab.tabId} · ${result.current_tab.title || '(no title)'} — ${result.current_tab.url}` : 'Current tab: none',
-        `Jev: ${result.settings.provider === 'cloud' ? 'jevbrowsercontrol.com credits' : 'own OpenRouter key'}${result.settings.key_set ? '' : ' (NO KEY SET: jev_* tools will fail until the user adds OPENROUTER_API_KEY or JBC_API_KEY to ~/.jev-browser-control/config.env)'}`,
+        jevLine(result.settings),
         `Models: ${result.settings.jev_model} + ${result.settings.text_model}`,
         `Limits per task: ${result.settings.limits.max_steps} actions, ${result.settings.limits.max_seconds} s, $${result.settings.limits.max_cost_usd}`,
         `Stops before irreversible clicks: ${result.settings.confirm_irreversible ? 'yes' : 'no'}`,

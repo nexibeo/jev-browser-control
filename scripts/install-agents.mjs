@@ -25,7 +25,7 @@ const dry = args.has('--dry-run');
 const uninstall = args.has('--uninstall');
 const only = args.has('--claude') || args.has('--codex');
 const NAME = 'jev-browser';
-const TARBALL = 'https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz';
+const TARBALL = 'https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz';
 const extensionMode = args.has('--extension');
 // Homebrew's versioned Cellar path breaks on the next Node update; prefer its stable opt/ link.
 function stableNode() {

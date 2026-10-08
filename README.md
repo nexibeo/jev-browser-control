@@ -41,13 +41,13 @@ Claude Code asks for your key when you enable it. The plugin is the [`mcp/`](mcp
 2. **Add the MCP server with your key.** Claude Code:
 
    ```bash
-   claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz
+   claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz
    ```
 
    Codex:
 
    ```bash
-   codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.1.tgz
+   codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz
    ```
 
    With your own OpenRouter key, use `OPENROUTER_API_KEY=sk-or-v1-...` instead. To keep the key out of Claude's and Codex's config, leave out `-e`/`--env` and put the same line in `~/.jev-browser-control/config.env`.

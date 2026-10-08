@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { pageOp } from './core/page.js';
 import { runTask, findElement, checkPage, StaleError, fingerprint } from './core/agent.js';
-import { makeProvider } from './core/provider.js';
+import { makeProvider, dashboardUrl } from './core/provider.js';
 import { keySet, isBlocked, loadConfig, HOME } from './config.mjs';
 import { Recorder } from './recorder.mjs';
 
@@ -249,12 +249,20 @@ export class LocalBrowser {
     return u.href;
   }
 
+  // Where the user puts the key: the plugin's settings when Claude Code started this server as a plugin.
+  settingsName() {
+    return process.env.CLAUDE_PLUGIN_ROOT ? 'the plugin settings (/plugin, Jev Browser Control, Configure)' : '~/.jev-browser-control/config.env (JBC_API_KEY=jbc_...)';
+  }
+
   provider() {
     // A key added to config.env while Claude is running counts from the next call.
     if (!keySet(this.config.settings)) this.config.settings = loadConfig().settings;
     const s = this.config.settings;
-    if (!keySet(s)) throw new Error(`No key for Jev. Put OPENROUTER_API_KEY=... (or JBC_API_KEY=jbc_... for credits) in ~/.jev-browser-control/config.env and retry.`);
-    return makeProvider(s, { settingsName: '~/.jev-browser-control/config.env' });
+    if (!keySet(s)) {
+      const alt = s.provider === 'cloud' || process.env.CLAUDE_PLUGIN_ROOT ? '' : ' (Or run it on your own OpenRouter account with OPENROUTER_API_KEY=... in the same file.)';
+      throw new Error(`No key for Jev. Get a Jev Browser Control key at ${dashboardUrl(s)} and add it in ${this.settingsName()}, then retry.${alt}`);
+    }
+    return makeProvider(s, { settingsName: this.settingsName() });
   }
 
   async brief(driver) {
@@ -275,10 +283,14 @@ export class LocalBrowser {
     switch (method) {
       case 'status': {
         if (!keySet(this.config.settings)) this.config.settings = loadConfig().settings;
-        const context = await this.ensure();
+        const s = this.config.settings;
+        const [context, credits] = await Promise.all([
+          this.ensure(),
+          s.provider === 'cloud' && keySet(s) ? makeProvider(s).balanceNow() : null,
+        ]);
         const page = await this.page();
         return {
-          mode: 'browser', version: this.version, settings: this.describe(),
+          mode: 'browser', version: this.version, settings: { ...this.describe(), credits_usd: credits, dashboard: dashboardUrl(s), key_where: this.settingsName() },
           browser: { executable: this.config.browser.chromePath || this.config.browser.channel, profile: this.config.browser.profileDir, headless: this.config.browser.headless, tabs: context.pages().length },
           current_tab: { tabId: this.idOf(page), url: page.url(), title: await page.title().catch(() => '') },
           running_tasks: [...this.tasks.values()].map((t) => ({ goal: t.goal, tabId: t.tabId, source: 'claude' })),

@@ -1,8 +1,8 @@
 {
   "name": "jev-browser-control",
   "displayName": "Jev Browser Control",
-  "version": "0.4.1",
-  "description": "Let Claude drive a real Chrome window: open pages, read them, click, type and fill in forms. Jev, a fast decision model, can run whole multi-step tasks at about half a second and a fraction of a cent per step. Logins you make in the window are kept, and clicks that buy, pay, send, post or delete wait for your OK.",
+  "version": "0.4.2",
+  "description": "Let Claude drive a real Chrome window: open pages, read them, click, type and fill in forms. Jev, a fast decision model, runs whole multi-step tasks at about half a second and a fraction of a cent per step, paid from your Jev Browser Control credits. Logins you make in the window are kept, and clicks that buy, pay, send, post or delete wait for your OK.",
   "author": {
     "name": "Nexibeo",
     "email": "contact@jevbrowsercontrol.com",
@@ -11,7 +11,15 @@
   "homepage": "https://jevbrowsercontrol.com/how-to",
   "repository": "https://github.com/nexibeo/jev-browser-control",
   "license": "MIT",
-  "keywords": ["browser", "chrome", "browser-automation", "web", "forms", "research", "jev"],
+  "keywords": [
+    "browser",
+    "chrome",
+    "browser-automation",
+    "web",
+    "forms",
+    "research",
+    "jev"
+  ],
   "icon": "./assets/logo.png",
   "documentationUrl": "https://jevbrowsercontrol.com/docs",
   "supportUrl": "https://github.com/nexibeo/jev-browser-control/issues",
@@ -20,10 +28,12 @@
   "mcpServers": {
     "jev-browser": {
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server.mjs"],
+      "args": [
+        "${CLAUDE_PLUGIN_ROOT}/server.mjs"
+      ],
       "env": {
+        "JBC_PROVIDER": "cloud",
         "JBC_API_KEY": "${user_config.jbc_api_key}",
-        "OPENROUTER_API_KEY": "${user_config.openrouter_api_key}",
         "JBC_CONFIRM_IRREVERSIBLE": "${user_config.ask_before_irreversible}"
       }
     }
@@ -32,16 +42,9 @@
     "jbc_api_key": {
       "type": "string",
       "title": "Jev Browser Control key",
-      "description": "Your jbc_ key from jevbrowsercontrol.com/dashboard (prepaid credits). Leave empty if you use your own OpenRouter key below, or keep keys in ~/.jev-browser-control/config.env.",
+      "description": "Your jbc_ key from jevbrowsercontrol.com/dashboard. Jev's steps are paid from that account's credits; check your balance and add credits in the dashboard.",
       "sensitive": true,
-      "default": ""
-    },
-    "openrouter_api_key": {
-      "type": "string",
-      "title": "Or: your own OpenRouter key",
-      "description": "Run Jev on your own OpenRouter account instead of credits (sk-or-v1-...). Leave empty when you use a Jev Browser Control key.",
-      "sensitive": true,
-      "default": ""
+      "required": true
     },
     "ask_before_irreversible": {
       "type": "boolean",

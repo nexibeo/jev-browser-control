@@ -17,13 +17,14 @@ The server runs in one of two modes, and `browser_status` says which:
 1. Call `browser_status`. The first call in browser mode opens the Chrome window, which takes a few seconds.
    - "Chrome could not start" or a similar error: pass the message on. It says what to install or change.
    - "Extension: not connected" (extension mode): ask the user to open Chrome, click the orange Jev toolbar icon, and check that "Let Claude control this browser" is on in its settings. Install steps: https://jevbrowsercontrol.com/docs#install
-   - "NO KEY SET" or "NO API KEY SET": the `jev_*` tools fail until the user adds a key. In browser mode it goes in the plugin's settings (`/plugin`, Jev Browser Control, Configure) when the tools come from the Jev Browser Control plugin, or in `~/.jev-browser-control/config.env` (`JBC_API_KEY=jbc_...` or `OPENROUTER_API_KEY=...`); in extension mode, in the extension settings. The `browser_*` tools still work.
+   - "NO KEY SET" or "NO API KEY SET": the `jev_*` tools need a Jev Browser Control key. The user creates one at https://jevbrowsercontrol.com/dashboard and adds it in the plugin's settings (`/plugin`, Jev Browser Control, Configure), in `~/.jev-browser-control/config.env` as `JBC_API_KEY=jbc_...`, or in the extension settings in extension mode. The `browser_*` tools still work.
+   - "credits are used up" or "running low": tell the user, and that they add credits at https://jevbrowsercontrol.com/dashboard. Don't retry `jev_*` tools while the credits are used up; the `browser_*` tools still work.
 2. In browser mode, use the current tab. In extension mode, open a new one with `browser_navigate` and `newTab: true` so the user's own tabs stay untouched.
 3. When a site needs a login, ask the user to sign in in the Chrome window, wait until they say they're done, then continue.
 
 ## Let Jev do the clicking
 
-Clicking through pages doesn't need you. In a measured comparison on the same tasks, Jev picked each step 27 to 198 times cheaper and more than twice as fast than Claude or GPT models doing it themselves. So plan the work, hand each multi-step sequence to `jev_task`, and spend your own steps on deciding what to do and checking the result.
+Clicking through pages doesn't need you. In a measured comparison on the same tasks, Jev picked each step 5 to 40 times cheaper (at Jev Browser Control credits prices) and more than twice as fast than Claude or GPT models doing it themselves. So plan the work, hand each multi-step sequence to `jev_task`, and spend your own steps on deciding what to do and checking the result.
 
 ## Pick the right tool
 
