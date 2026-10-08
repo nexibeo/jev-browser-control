@@ -5,7 +5,7 @@
 //                      with Jev choosing each step. Nothing else to install.
 //   extension          JBC_MODE=extension: it drives your everyday Chrome through the
 //                      Jev Browser Control extension, over a bridge on 127.0.0.1.
-//   claude mcp add jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz
+//   Install: as the Claude Code plugin in this folder, or see https://jevbrowsercontrol.com/docs#claude
 //   (or, from a clone: claude mcp add jev-browser -- node /path/to/mcp/server.mjs)
 // Keys and options: ~/.jev-browser-control/config.env (see lib/config.mjs), or environment variables.
 import { readFileSync } from 'node:fs';

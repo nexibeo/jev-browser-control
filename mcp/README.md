@@ -25,15 +25,7 @@ You need Google Chrome, and Node.js 18 or newer with npm.
 
 Claude Code asks for your Jev Browser Control key when you enable the plugin. You can change it, or switch confirmations off, later under `/plugin`, Jev Browser Control, Configure.
 
-**Any MCP client** (Claude Code without the plugin, Codex, Claude Desktop):
-
-```bash
-claude mcp add -s user -e JBC_API_KEY=jbc_your_key jev-browser -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz
-```
-
-```bash
-codex mcp add jev-browser --env JBC_API_KEY=jbc_your_key -- npx -y https://jevbrowsercontrol.com/downloads/jev-browser-control-mcp-0.4.2.tgz
-```
+**Without the plugin** (Codex, Claude Desktop and other MCP clients): see the install commands in the [docs](https://jevbrowsercontrol.com/docs#claude).
 
 **Your key and credits.** Jev runs on prepaid credits from Jev Browser Control. Create an account and copy your `jbc_` key in the [dashboard](https://jevbrowsercontrol.com/dashboard); add credits there from $10. A task costs a fraction of a cent: the five tasks in the [demo video](https://youtu.be/t4EBCQbVsF4) cost $0.003 to $0.007 each. Your balance shows when Claude checks the browser status, and Claude tells you when credits run low; you add more in the same dashboard. Without a key the `browser_*` tools still work; only the `jev_*` tools need credits.
 
@@ -42,6 +34,7 @@ Then ask Claude to use the browser. A Chrome window opens on the first tool call
 ## What runs on your computer, and what is sent where
 
 - **What runs.** The plugin starts `node server.mjs` from this folder. When you install the plugin, Claude Code installs its one dependency, `playwright-core`, from npm at the exact version pinned in `package-lock.json`. The server uses it to start your installed Google Chrome with a separate profile in `~/.jev-browser-control/chrome-profile`, apart from your everyday Chrome profile. `browser_record` also runs `ffmpeg`, when it is installed, to turn the recorded frames into an MP4.
+- **Where the key comes from.** The plugin asks for your Jev Browser Control key in its settings, where Claude Code keeps it in your system's secure storage, and passes it to the server as `JBC_API_KEY`. The plugin always runs on those credits. Outside the plugin, the server can also read the key from `~/.jev-browser-control/config.env`, a file of its own. It never reads keys or tokens that belong to other tools.
 - **Local only.** The server listens on `127.0.0.1:10523`, so several Claude Code or Codex sessions share one Chrome window. It accepts other Jev Browser Control processes on your computer that hold the token in `~/.jev-browser-control` (and, in extension mode, the extension); web pages can't connect.
 - **What is sent.** The `browser_*` tools send nothing anywhere; Chrome loads the pages you ask for as usual. When `jev_task`, `jev_find` or `jev_check` run, the server sends the page's visible text, its list of buttons, links and fields (with labels and current values; password and file fields are never included), your goal and the details you gave to jevbrowsercontrol.com, which charges your credits and forwards it to OpenRouter. OpenRouter routes Jev calls to TypeSafe and text calls to the text model's provider. jevbrowsercontrol.com does not store the content. When Claude checks the browser status, the server also asks jevbrowsercontrol.com for your balance. See the [privacy policy](https://jevbrowsercontrol.com/privacy).
 - **What is stored.** Your settings in `~/.jev-browser-control/config.env`, the browser profile (cookies and logins of the sites you use there), and recordings in `~/.jev-browser-control/recordings`. No telemetry.
